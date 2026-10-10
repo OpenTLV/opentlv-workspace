@@ -1,0 +1,13 @@
+{
+	"folders": [
+		{
+			"path": ".",
+			"name": "workspace"
+		},
+		{
+			"path": "../opentlv",
+			"name": "opentlv"
+		}
+	],
+	"settings": {}
+}

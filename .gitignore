@@ -1,0 +1,17 @@
+# Local editor configuration
+.vscode/
+
+# Operating system files
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Temporary files
+*.tmp
+*.bak
+*.swp
+*.swo
+
+# Local environment files
+.env
+.env.local
