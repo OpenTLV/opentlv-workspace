@@ -4,6 +4,9 @@ Thank you for your interest in contributing to OpenTLV.
 
 This repository maintains the shared Visual Studio Code development workspace for the OpenTLV ecosystem.
 
+All project spaces, including issues, pull requests, and reviews, are governed by the [Code of Conduct](CODE_OF_CONDUCT.md).
+Follow its reporting instructions to report unacceptable behavior privately rather than opening a public issue.
+
 ## Scope
 
 Contributions should focus on improving the development experience across independent OpenTLV repositories.

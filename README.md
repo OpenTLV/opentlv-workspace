@@ -73,6 +73,11 @@ Not all repositories are required to use the workspace.
 - Keep build artifacts and local configuration outside version control.
 - Allow bindings and tools to evolve independently of OpenTLV Core.
 
+## Code of Conduct
+
+Participation in this project's community is governed by the [Code of Conduct](CODE_OF_CONDUCT.md).
+It describes community standards and how to report unacceptable behavior privately.
+
 ## License
 
 This repository is licensed under the MIT License. See [LICENSE](LICENSE) for details.
