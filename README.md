@@ -2,35 +2,34 @@
 
 Official Visual Studio Code multi-root workspace for developing the OpenTLV ecosystem.
 
-This repository provides a unified development environment for OpenTLV Core, language bindings, and tools while keeping each project independent.
+This repository provides the shared editor configuration and workspace documentation for working with the `opentlv` repository.
 
 ## Overview
 
-OpenTLV is organized into independent repositories with their own development, testing, and release lifecycles.
+The workspace currently opens two repositories: `opentlv-workspace` and `opentlv`. The `opentlv` repository contains the C core, C++ API, CLI, and language bindings.
 
 The workspace uses native Visual Studio Code functionality to work with multiple repositories in a single editor window.
 
-**The workspace is optional.** Every OpenTLV component can be built, tested, and released independently.
+**The workspace is optional.** You can open, build, test, and develop `opentlv` without this repository. Component build and release workflows are maintained in `opentlv`.
 
 ## Prerequisites
 
 - Git
 - Visual Studio Code
-- Development tools required by the individual repositories
+- Development tools required by the OpenTLV components you work on; see [Development Documentation](#development-documentation)
 
 ## Getting Started
 
-Clone the workspace repository:
+From the directory where you keep your projects, create a shared parent directory and clone both repositories into it:
 
 ```bash
+mkdir OpenTLV
+cd OpenTLV
 git clone git@github.com:OpenTLV/opentlv-workspace.git
-```
-
-Clone OpenTLV Core into the same parent directory:
-
-```bash
 git clone git@github.com:OpenTLV/opentlv.git
 ```
+
+These clone commands use SSH and require GitHub SSH access. If you already have a parent directory for OpenTLV checkouts, use it instead of creating a new one.
 
 The resulting directory structure should look like this:
 
@@ -41,37 +40,50 @@ OpenTLV/
     └── opentlv.code-workspace
 ```
 
-Open the workspace:
+While still in the parent directory (`OpenTLV/` in the example), open the workspace:
 
 ```bash
 code opentlv-workspace/opentlv.code-workspace
 ```
 
-Additional repositories can be cloned alongside Core and added through **File → Add Folder to Workspace**.
-
 ## Repository Structure
 
-The workspace is designed to support the following repositories as they become available:
+The roots in `opentlv.code-workspace` use paths relative to the workspace repository:
 
-| Repository | Purpose |
-|---|---|
-| `opentlv` | C core and C++ API |
-| `opentlv-cli` | Command-line tools |
-| `opentlv-python` | Python bindings |
-| `opentlv-rust` | Rust bindings |
-| `opentlv-lua` | Lua bindings |
-| `opentlv-go` | Go bindings |
+| VS Code Root | Relative Path | Repository | Purpose |
+| --- | --- | --- | --- |
+| `workspace` | `.` | `opentlv-workspace` | Shared VS Code configuration and workspace documentation |
+| `opentlv` | `../opentlv` | `opentlv` | C core, C++ API, CLI, and language bindings |
 
-Not all repositories are required to use the workspace.
+Components currently live inside `opentlv`:
+
+| Path Within `opentlv` | Component |
+| --- | --- |
+| `tlv/` | C core |
+| `tlv++/` | C++ API |
+| `tools/cli/` | Command-line interface |
+| `bindings/` | Go, Lua, Python, Rust, and JavaScript/WebAssembly bindings |
+
+CLI and binding development uses this same checkout; separate component repositories are not required.
+
+## Development Documentation
+
+Follow the documentation in `opentlv` for component prerequisites, build commands, and testing:
+
+- [Getting started](https://github.com/OpenTLV/opentlv/blob/main/docs/getting-started/README.md): build setup and language quick starts.
+- [Contributing](https://github.com/OpenTLV/opentlv/blob/main/CONTRIBUTING.md) and [development workflow](https://github.com/OpenTLV/opentlv/blob/main/docs/development/workflow.md): contribution checks, testing, and releases.
+- [CLI guide](https://github.com/OpenTLV/opentlv/blob/main/docs/cli/README.md): command-line tools.
+- [Bindings overview](https://github.com/OpenTLV/opentlv/blob/main/docs/concepts/bindings.md): language integration and links to binding guides.
+
+For changes to this workspace repository, see [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Development Principles
 
 - Use native VS Code multi-root workspace functionality.
-- Keep repositories independently buildable and testable.
-- Use each language ecosystem's established build and package tools.
-- Do not introduce dependencies on the workspace into individual projects.
+- Keep `opentlv` buildable and testable without the workspace repository.
+- Use the component build and package tools documented in `opentlv`.
+- Keep build, test, and release workflows with the components they serve.
 - Keep build artifacts and local configuration outside version control.
-- Allow bindings and tools to evolve independently of OpenTLV Core.
 
 ## Security
 
