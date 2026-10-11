@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Optional Python bootstrap script to clone missing workspace repositories over HTTPS or SSH while preserving existing checkouts and reporting destination conflicts. (#13)
 - Security policy for workspace configuration, tooling, and workflows, with private reporting guidance and links from the README and contribution guidelines. (#7)
 - Code of Conduct based on the OpenTLV community policy, linked from the README and contribution guidelines. (#5)
 - Pull request template for workspace changes, with contribution guidance for issue references, validation, and review checklists. (#3)

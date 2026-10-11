@@ -61,6 +61,16 @@ Before submitting a pull request:
 - Update the README when changing workspace behavior.
 - Update the changelog for notable changes.
 
+## Bootstrap Validation
+
+Run the offline bootstrap checks from the workspace repository:
+
+```bash
+python -B tests/test_bootstrap.py -v
+```
+
+The tests run copies of the script against local Git repositories in system temporary directories, outside the development workspace. They disable network Git protocols and cover cloning, repeated runs, existing checkout preservation, conflicts, and failures. Python and Git are required; no third-party Python packages are needed. Report which operating systems were tested.
+
 ## Development Independence
 
 Each OpenTLV repository owns its build system, tests, dependencies, and releases.

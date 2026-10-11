@@ -16,9 +16,33 @@ The workspace uses native Visual Studio Code functionality to work with multiple
 
 - Git
 - Visual Studio Code
+- Python 3.9+ for the optional bootstrap script (`python3` on systems where `python` is unavailable)
 - Development tools required by the OpenTLV components you work on; see [Development Documentation](#development-documentation)
 
 ## Getting Started
+
+### Bootstrap
+
+From your chosen parent directory (for example `OpenTLV/`), clone the workspace repository and run:
+
+```bash
+git clone https://github.com/OpenTLV/opentlv-workspace.git
+python opentlv-workspace/scripts/bootstrap.py
+```
+
+The script clones the missing `OpenTLV/opentlv` repository next to `opentlv-workspace` using HTTPS by default. To use SSH instead, with GitHub SSH access configured:
+
+```bash
+python opentlv-workspace/scripts/bootstrap.py --protocol ssh
+```
+
+Destinations are resolved from the script's location, so the script can be invoked from any working directory. It prints a summary and, on success, the command to open the workspace.
+
+Existing checkouts are skipped only when their root and `origin` identify the expected repository. GitHub HTTPS and SSH URL forms are accepted interchangeably. The script does not fetch, pull, switch branches, or modify local changes in existing checkouts. Conflicting files, directories, or repositories are left untouched and reported with a nonzero exit status.
+
+If cloning fails, inspect the reported destination before retrying. The script does not delete failed clone output. It does not build components or install dependencies; CLI and bindings remain part of the `opentlv` checkout.
+
+### Manual Setup
 
 From the directory where you keep your projects, create a shared parent directory and clone both repositories into it:
 
