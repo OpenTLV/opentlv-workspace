@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Bug and Chore issue forms tailored to the workspace, with blank issues enabled and contribution guidance for choosing a reporting option. (#1)
 - Visual Studio Code multi-root workspace configuration (`opentlv.code-workspace`).
 - OpenTLV Core folder (`../opentlv`) in the workspace.
 - README with prerequisites, setup steps, and the expected directory layout.

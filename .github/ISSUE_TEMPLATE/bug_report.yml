@@ -1,0 +1,84 @@
+name: Bug
+description: Report a problem with workspace configuration, setup, or development tooling.
+title: "[Bug]: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please search [existing issues](https://github.com/OpenTLV/opentlv-workspace/issues) first.
+        Use this form for problems with the shared VS Code workspace.
+        Report component-specific issues in the relevant repository; OpenTLV Core and its current bindings are tracked in [OpenTLV/opentlv](https://github.com/OpenTLV/opentlv/issues).
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: A clear and concise description of the problem.
+    validations:
+      required: true
+  - type: input
+    id: os
+    attributes:
+      label: Operating system
+      description: Include the version and whether you use WSL, SSH, or a development container.
+      placeholder: e.g. Windows 11 with Ubuntu 24.04 in WSL
+    validations:
+      required: true
+  - type: input
+    id: vscode-version
+    attributes:
+      label: VS Code version
+      description: Include the version and whether you use Stable or Insiders.
+    validations:
+      required: true
+  - type: input
+    id: workspace-revision
+    attributes:
+      label: Workspace revision
+      description: Commit hash, tag, or branch of opentlv-workspace, if known.
+    validations:
+      required: false
+  - type: textarea
+    id: extensions
+    attributes:
+      label: Relevant extensions
+      description: Extension names and versions related to the problem, if any.
+    validations:
+      required: false
+  - type: textarea
+    id: repro-steps
+    attributes:
+      label: Steps to reproduce
+      description: Include the repository layout and any local workspace changes needed to reproduce the problem.
+      placeholder: |
+        1. Open opentlv.code-workspace.
+        2. ...
+        3. ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant logs
+      description: Include relevant error messages or output, if available.
+      render: text
+    validations:
+      required: false
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional context
+      description: Screenshots, related issues, or anything else relevant.
+    validations:
+      required: false

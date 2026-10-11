@@ -17,6 +17,18 @@ Examples include:
 
 Changes to OpenTLV Core, language bindings, or tools should be submitted to their respective repositories.
 
+## Issues
+
+Search [existing issues](https://github.com/OpenTLV/opentlv-workspace/issues) before opening a new one.
+Use the [issue chooser](https://github.com/OpenTLV/opentlv-workspace/issues/new/choose) to select:
+
+- **Bug** for problems with workspace configuration, setup, or development tooling. Include your operating system, VS Code version, reproduction steps, and expected and actual behavior. Workspace revision, relevant extensions, logs, and additional context are optional.
+- **Chore** for workspace maintenance, improvements, tooling, CI, or documentation. Describe the motivation, proposed changes, and acceptance criteria. Validation and additional context are optional.
+- **Blank issue** for topics that do not fit either form, with a free-form title and description.
+
+Report component-specific build or runtime issues in the repository that owns the component.
+OpenTLV Core and the bindings currently included with it use the [OpenTLV issue tracker](https://github.com/OpenTLV/opentlv/issues).
+
 ## Guidelines
 
 1. Prefer native Visual Studio Code functionality.
