@@ -1,0 +1,34 @@
+# Third-party and generated files retain their own notices and formatting.
+exclude: (^|/)(vendor|third_party|generated)/
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+        types: [text]
+        exclude: '(?i:\.(bin|dat)$)|^tests/fixtures/binary/'
+      - id: end-of-file-fixer
+        types: [text]
+        exclude: '(?i:\.(bin|dat)$)|^tests/fixtures/binary/'
+      - id: check-yaml
+      - id: check-json
+        exclude: '\.code-workspace$'
+      - id: check-ast
+      - id: check-added-large-files
+
+  - repo: https://github.com/igorshubovych/markdownlint-cli
+    rev: v0.45.0
+    hooks:
+      - id: markdownlint
+        types: [markdown, text]
+        args: [--fix, --config, .markdownlint.json]
+
+  - repo: local
+    hooks:
+      - id: license-headers
+        name: Check Python license headers
+        entry: python scripts/check_license_headers.py
+        language: python
+        files: '\.pyi?$'
+        types: [text]

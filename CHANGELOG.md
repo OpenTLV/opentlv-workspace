@@ -9,11 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Added the missing final newline in `opentlv.code-workspace`. (#15)
 - Corrected the workspace copyright attribution to Marek Cingel, matching the OpenTLV repository. (#11)
 - README now reflects the two-repository workspace and current component locations, with clarified setup instructions and links to OpenTLV development documentation. (#9)
 
 ### Added
 
+- Pinned `pre-commit-hooks` and `markdownlint-cli` hooks for whitespace, final newlines, YAML and JSON syntax, Python syntax, Markdown, and large files, with exclusions for third-party, generated, and binary files as appropriate. (#15)
+- A read-only Python SPDX and copyright header check that supports leading shebangs and encoding declarations without additional dependencies. (#15)
+- Pinned pre-commit tooling in `requirements-dev.txt` and a `.gitignore` entry for local `.venv/` environments, without changing bootstrap dependencies. (#15)
+- Pre-commit installation, activation, scope, and validation guidance in `CONTRIBUTING.md`, linked from the README. Workspace JSONC syntax remains manually reviewed. (#15)
 - Contribution guidelines for MIT SPDX and copyright headers in project source files, scripts, and tests, using language-appropriate comment syntax. (#13)
 - Optional Python bootstrap script to clone missing workspace repositories over HTTPS or SSH while preserving existing checkouts and reporting destination conflicts. (#13)
 - Security policy for workspace configuration, tooling, and workflows, with private reporting guidance and links from the README and contribution guidelines. (#7)

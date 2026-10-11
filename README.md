@@ -101,6 +101,8 @@ Follow the documentation in `opentlv` for component prerequisites, build command
 
 For changes to this workspace repository, see [CONTRIBUTING.md](CONTRIBUTING.md).
 
+Optional contributor tooling is described in [Pre-commit Checks](CONTRIBUTING.md#pre-commit-checks). Bootstrap itself still requires only Python and Git.
+
 ## Development Principles
 
 - Use native VS Code multi-root workspace functionality.
