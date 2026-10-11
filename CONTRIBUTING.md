@@ -44,6 +44,14 @@ OpenTLV Core and the bindings currently included with it use the [OpenTLV issue 
 5. Do not introduce dependencies on the workspace into individual projects.
 6. Keep changes minimal and focused.
 
+## Line Endings
+
+The repository's [.gitattributes](.gitattributes) uses automatic text detection and LF line endings for text files in both Git and the working tree. Explicit rules cover Python sources, Markdown, JSON, YAML, text files, the VS Code workspace, and repository metadata. These rules take precedence over `core.autocrlf` and `core.eol`; no global Git configuration changes are required.
+
+Binary files are not normalized. The `.bin` and `.dat` extensions and `tests/fixtures/binary/` are explicitly exempt, including payloads that look like text. Add an explicit `-text` rule when introducing another binary format that Git might otherwise classify as text.
+
+Save text files with LF in your editor. Use `git ls-files --eol` to inspect tracked files and `git diff --check` to check whitespace. Existing working copies may retain CRLF until rewritten; preserve local changes and avoid destructive resets just to refresh line endings. Any normalization-only change must preserve all other bytes and leave sibling repositories untouched.
+
 ## Source License Headers
 
 Include an MIT SPDX identifier and copyright notice at the beginning of project source files, including scripts and tests. Use the comment syntax supported by the file's language.
