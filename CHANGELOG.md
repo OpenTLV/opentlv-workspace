@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Corrected the workspace copyright attribution to Marek Cingel, matching the OpenTLV repository. (#11)
 - README now reflects the two-repository workspace and current component locations, with clarified setup instructions and links to OpenTLV development documentation. (#9)
 
 ### Added
