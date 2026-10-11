@@ -18,3 +18,6 @@ Desktop.ini
 
 # Python bytecode
 __pycache__/
+
+# Local contributor tooling
+.venv/

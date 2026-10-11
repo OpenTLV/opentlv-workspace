@@ -83,6 +83,39 @@ Before submitting a pull request:
 - Update the README when changing workspace behavior.
 - Update the changelog for notable changes.
 
+## Pre-commit Checks
+
+Contributor tooling is optional for running bootstrap. Install it in a virtual environment from the workspace repository:
+
+```bash
+python -m venv .venv
+```
+
+Activate it with `.venv\Scripts\Activate.ps1` in PowerShell or `source .venv/bin/activate` in Bash, then run:
+
+```bash
+python -m pip install -r requirements-dev.txt
+pre-commit install
+pre-commit run --all-files
+```
+
+Git is required. The first run downloads the pinned hook environments and may take longer; Markdownlint's Node environment is managed by pre-commit. Hook installation applies only to this repository. Bootstrap does not install dependencies or activate hooks.
+
+Checks use `pre-commit-hooks` and `markdownlint-cli` to cover whitespace, final newlines, YAML and JSON syntax, Python syntax, Markdown, and large files (500 KiB by default). Markdownlint uses `.markdownlint.json`. The JSON hook excludes `.code-workspace` files because they may contain JSONC comments; workspace syntax is reviewed manually.
+
+A small local hook checks the SPDX and copyright header in Python sources (`.py` and `.pyi`), including scripts and tests. It allows a leading shebang and Python encoding declaration, reports errors without changing files, and requires no additional dependencies. Extend it when sources in other languages are introduced; the general source-header policy above still applies.
+
+Some hooks modify files to fix formatting. Review and stage the changes, then rerun the checks. Third-party and generated directories (`vendor/`, `third_party/`, `generated/`) are excluded. Text-rewriting hooks additionally exclude identified binary files, `.bin`/`.dat` files, and `tests/fixtures/binary/`; extend these exclusions if new binary fixtures are added.
+
+Validate changes to the hook configuration with:
+
+```bash
+pre-commit validate-config
+pre-commit run --all-files
+```
+
+Run the bootstrap tests separately after changing Python files. Record the operating systems actually tested; CI integration is maintained separately.
+
 ## Bootstrap Validation
 
 Run the offline bootstrap checks from the workspace repository:
