@@ -16,6 +16,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Repository line-ending rules in `.gitattributes`, with automatic text detection, explicit LF rules for source, documentation, and configuration files, and binary payload exclusions. (#18)
+- Contribution guidance for line endings, binary exclusions, and non-destructive verification of existing checkouts. (#18)
 - A read-only GitHub Actions workflow for pull requests, pushes to `main`, and manual runs, with pre-commit checks on Linux and existing offline bootstrap tests on Linux, Windows, and macOS. (#17)
 - Contribution guidance for CI scope, isolated bootstrap fixtures, failure handling, and reporting local versus hosted validation. (#17)
 - Pinned `pre-commit-hooks` and `markdownlint-cli` hooks for whitespace, final newlines, YAML and JSON syntax, Python syntax, Markdown, and large files, with exclusions for third-party, generated, and binary files as appropriate. (#15)

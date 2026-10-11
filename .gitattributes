@@ -1,0 +1,19 @@
+# Detect text automatically and use LF in the index and working tree.
+* text=auto eol=lf
+
+# Source, documentation, and configuration files used in this repository.
+*.py text eol=lf
+*.md text eol=lf
+*.json text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.txt text eol=lf
+*.code-workspace text eol=lf
+.gitattributes text eol=lf
+.gitignore text eol=lf
+LICENSE text eol=lf
+
+# Preserve binary payloads, including fixtures that may look like text.
+*.bin -text
+*.dat -text
+tests/fixtures/binary/** -text
