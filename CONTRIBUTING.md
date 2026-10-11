@@ -44,6 +44,28 @@ OpenTLV Core and the bindings currently included with it use the [OpenTLV issue 
 5. Do not introduce dependencies on the workspace into individual projects.
 6. Keep changes minimal and focused.
 
+## Source License Headers
+
+Include an MIT SPDX identifier and copyright notice at the beginning of project source files, including scripts and tests. Use the comment syntax supported by the file's language.
+
+For Python, shell, or PowerShell:
+
+```python
+# SPDX-License-Identifier: MIT
+# Copyright (c) 2026 Marek Cingel
+```
+
+For C, C++, Rust, JavaScript, or TypeScript:
+
+```c
+// SPDX-License-Identifier: MIT
+// Copyright (c) 2026 Marek Cingel
+```
+
+Use the equivalent comment syntax for other languages. Preserve required leading directives, such as shebangs and encoding declarations; in Python, place the header before the module docstring and imports.
+
+Do not insert comments into formats that do not support them, such as JSON, or replace third-party license notices. Generated files should receive headers through their generator where appropriate. The full license text is in [LICENSE](LICENSE).
+
 ## Pull Requests
 
 Complete the [pull request template](.github/PULL_REQUEST_TEMPLATE.md) when submitting a change:
@@ -60,6 +82,16 @@ Before submitting a pull request:
 - Confirm that referenced paths follow the documented repository layout.
 - Update the README when changing workspace behavior.
 - Update the changelog for notable changes.
+
+## Bootstrap Validation
+
+Run the offline bootstrap checks from the workspace repository:
+
+```bash
+python -B tests/test_bootstrap.py -v
+```
+
+The tests run copies of the script against local Git repositories in system temporary directories, outside the development workspace. They disable network Git protocols and cover cloning, repeated runs, existing checkout preservation, conflicts, and failures. Python and Git are required; no third-party Python packages are needed. Report which operating systems were tested.
 
 ## Development Independence
 
