@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Code of Conduct based on the OpenTLV community policy, linked from the README and contribution guidelines. (#5)
 - Pull request template for workspace changes, with contribution guidance for issue references, validation, and review checklists. (#3)
 - Bug and Chore issue forms tailored to the workspace, with blank issues enabled and contribution guidance for choosing a reporting option. (#1)
 - Visual Studio Code multi-root workspace configuration (`opentlv.code-workspace`).
