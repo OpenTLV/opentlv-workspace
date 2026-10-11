@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- License validation now covers repository-wide metadata instead of exact Python header matching. REUSE tooling requires Python 3.10+ in an isolated contributor environment; bootstrap dependencies and Python 3.9+ support remain unchanged. (#21)
+- Explicit LF line-ending rules now include TOML configuration files. (#21)
+
+### Removed
+
+- Custom `scripts/check_license_headers.py` checker and its local pre-commit hook, replaced by REUSE. (#21)
+
 ### Fixed
 
 - Large-file checks now include already committed files, so the size limit is enforced in clean CI checkouts. (#17)
@@ -16,6 +25,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Automatic REUSE annotation of workspace Python sources before license validation, with an explicit author and year, a source-header template, and exclusions for third-party, generated, and binary fixture directories. (#21)
+- Pinned REUSE pre-commit hook and contributor dependency with Windows-compatible encoding detection, explicit file annotations in `REUSE.toml`, and the MIT license text in `LICENSES/`. (#21)
+- Contribution guidance for repository-wide license validation, binary sidecars, third-party notices, and REUSE's limits compared with the source-header convention. (#21)
 - Repository line-ending rules in `.gitattributes`, with automatic text detection, explicit LF rules for source, documentation, and configuration files, and binary payload exclusions. (#18)
 - Contribution guidance for line endings, binary exclusions, and non-destructive verification of existing checkouts. (#18)
 - A read-only GitHub Actions workflow for pull requests, pushes to `main`, and manual runs, with pre-commit checks on Linux and existing offline bootstrap tests on Linux, Windows, and macOS. (#17)
