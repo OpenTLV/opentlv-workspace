@@ -27,9 +27,28 @@ repos:
 
   - repo: local
     hooks:
-      - id: license-headers
-        name: Check Python license headers
-        entry: python scripts/check_license_headers.py
+      - id: reuse-annotate
+        name: Add source license headers
+        entry: reuse annotate
         language: python
-        files: '\.pyi?$'
+        additional_dependencies: ['reuse[charset-normalizer]==6.2.0']
+        args:
+          - --copyright
+          - Marek Cingel
+          - --year
+          - '2026'
+          - --license
+          - MIT
+          - --copyright-prefix
+          - string-c
+          - --template
+          - source-header
+        files: '^(scripts|tests)/.*\.pyi?$'
         types: [text]
+        exclude: ^tests/fixtures/binary/
+
+  - repo: https://codeberg.org/fsfe/reuse-tool
+    rev: v6.2.0
+    hooks:
+      - id: reuse
+        additional_dependencies: ['reuse[charset-normalizer]==6.2.0']

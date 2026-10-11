@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
+
 # SPDX-License-Identifier: MIT
 # Copyright (c) 2026 Marek Cingel
+
 
 """Clone missing workspace repositories without updating existing checkouts."""
 
