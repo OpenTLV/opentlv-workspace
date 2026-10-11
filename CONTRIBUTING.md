@@ -40,6 +40,14 @@ OpenTLV Core and the bindings currently included with it use the [OpenTLV issue 
 
 ## Pull Requests
 
+Complete the [pull request template](.github/PULL_REQUEST_TEMPLATE.md) when submitting a change:
+
+- **Description:** explain the problem and the resulting behavior or maintenance improvement.
+- **Related Issue:** link relevant issues; use `Closes #<number>` only when the pull request resolves the issue.
+- **Type:** select bug fix, maintenance, tooling/CI, or documentation as applicable.
+- **Testing:** list completed local checks and their results separately from pending checks that require merging or verification on GitHub. If no checks were run, explain why.
+- **Checklist:** confirm scope, documentation, changelog, and validation. For documentation or changelog items that do not apply, replace the checkbox with `N/A` and briefly explain why.
+
 Before submitting a pull request:
 
 - Verify that the workspace configuration is valid.
