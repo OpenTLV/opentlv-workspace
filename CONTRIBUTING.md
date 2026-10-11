@@ -22,6 +22,9 @@ Changes to OpenTLV Core, language bindings, or tools should be submitted to thei
 
 ## Issues
 
+For suspected security vulnerabilities, follow the [security policy](SECURITY.md) and report privately.
+Do not disclose vulnerabilities through public issues, discussions, or pull requests.
+
 Search [existing issues](https://github.com/OpenTLV/opentlv-workspace/issues) before opening a new one.
 Use the [issue chooser](https://github.com/OpenTLV/opentlv-workspace/issues/new/choose) to select:
 

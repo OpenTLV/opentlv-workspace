@@ -73,6 +73,11 @@ Not all repositories are required to use the workspace.
 - Keep build artifacts and local configuration outside version control.
 - Allow bindings and tools to evolve independently of OpenTLV Core.
 
+## Security
+
+Report suspected vulnerabilities privately by following the [security policy](SECURITY.md).
+It defines the workspace scope, supported revision, and reporting process.
+
 ## Code of Conduct
 
 Participation in this project's community is governed by the [Code of Conduct](CODE_OF_CONDUCT.md).
