@@ -9,12 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Large-file checks now include already committed files, so the size limit is enforced in clean CI checkouts. (#17)
 - Added the missing final newline in `opentlv.code-workspace`. (#15)
 - Corrected the workspace copyright attribution to Marek Cingel, matching the OpenTLV repository. (#11)
 - README now reflects the two-repository workspace and current component locations, with clarified setup instructions and links to OpenTLV development documentation. (#9)
 
 ### Added
 
+- A read-only GitHub Actions workflow for pull requests, pushes to `main`, and manual runs, with pre-commit checks on Linux and existing offline bootstrap tests on Linux, Windows, and macOS. (#17)
+- Contribution guidance for CI scope, isolated bootstrap fixtures, failure handling, and reporting local versus hosted validation. (#17)
 - Pinned `pre-commit-hooks` and `markdownlint-cli` hooks for whitespace, final newlines, YAML and JSON syntax, Python syntax, Markdown, and large files, with exclusions for third-party, generated, and binary files as appropriate. (#15)
 - A read-only Python SPDX and copyright header check that supports leading shebangs and encoding declarations without additional dependencies. (#15)
 - Pinned pre-commit tooling in `requirements-dev.txt` and a `.gitignore` entry for local `.venv/` environments, without changing bootstrap dependencies. (#15)

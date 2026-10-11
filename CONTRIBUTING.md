@@ -114,7 +114,7 @@ pre-commit validate-config
 pre-commit run --all-files
 ```
 
-Run the bootstrap tests separately after changing Python files. Record the operating systems actually tested; CI integration is maintained separately.
+Run the bootstrap tests separately after changing Python files. Record the operating systems actually tested. The large-file hook checks every selected file, including already committed files, so the size limit also applies in CI.
 
 ## Bootstrap Validation
 
@@ -125,6 +125,17 @@ python -B tests/test_bootstrap.py -v
 ```
 
 The tests run copies of the script against local Git repositories in system temporary directories, outside the development workspace. They disable network Git protocols and cover cloning, repeated runs, existing checkout preservation, conflicts, and failures. Python and Git are required; no third-party Python packages are needed. Report which operating systems were tested.
+
+## Continuous Integration
+
+The [Workspace CI workflow](.github/workflows/ci.yml) runs on pull requests, pushes to `main`, and manual dispatches:
+
+- **Pre-commit:** runs the existing hooks on Linux, using `requirements-dev.txt` for contributor dependencies.
+- **Bootstrap:** runs the existing offline tests on Linux, Windows, and macOS with Python 3.11 and Git, without third-party Python dependencies.
+
+Each job checks out only this workspace repository. Bootstrap tests use local Git fixtures in temporary directories and disable network Git protocols; no sibling `opentlv` checkout is required or cloned. The workflow uses read-only repository permissions, does not persist checkout credentials, and does not commit or push hook fixes. A failed check fails its job; review the reported diff and apply any fixes locally.
+
+Local validation uses the pre-commit and bootstrap commands above. Report local results separately from GitHub Actions results; declaring a platform in the workflow does not mean it has already passed there.
 
 ## Development Independence
 
