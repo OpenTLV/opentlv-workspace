@@ -83,16 +83,19 @@ class BootstrapTests(unittest.TestCase):
             GIT_ALLOW_PROTOCOL="file",
             GIT_TERMINAL_PROMPT="0",
         )
-        self.run_git("init", self.source)
-        self.run_git("-C", self.source, "symbolic-ref", "HEAD", "refs/heads/main")
-        (self.source / "tracked.txt").write_text("initial\n", encoding="utf-8")
-        self.run_git("-C", self.source, "add", "tracked.txt")
-        self.run_git(
-            "-C", self.source, "-c", "user.name=Bootstrap Test",
-            "-c", "user.email=bootstrap@example.invalid", "commit", "-m", "Initial",
-        )
-        for url in (bootstrap.REPOSITORIES[0].https_url, bootstrap.REPOSITORIES[0].ssh_url):
-            self.run_git("config", "--global", "--add", f"url.{self.source.as_uri()}.insteadOf", url)
+        self.repositories = len(bootstrap.REPOSITORIES)
+        for index, repo in enumerate(bootstrap.REPOSITORIES):
+            source = self.source if index == 0 else self.root / f"source {repo.directory}"
+            self.run_git("init", source)
+            self.run_git("-C", source, "symbolic-ref", "HEAD", "refs/heads/main")
+            (source / "tracked.txt").write_text("initial\n", encoding="utf-8")
+            self.run_git("-C", source, "add", "tracked.txt")
+            self.run_git(
+                "-C", source, "-c", "user.name=Bootstrap Test",
+                "-c", "user.email=bootstrap@example.invalid", "commit", "-m", "Initial",
+            )
+            for url in (repo.https_url, repo.ssh_url):
+                self.run_git("config", "--global", "--add", f"url.{source.as_uri()}.insteadOf", url)
 
     def run_git(self, *args):
         return subprocess.run(
@@ -115,7 +118,7 @@ class BootstrapTests(unittest.TestCase):
     def test_initial_clone_from_other_directory_with_spaces(self):
         result = self.clone()
         self.assertEqual((self.destination / "tracked.txt").read_text(), "initial\n")
-        self.assertIn("1 cloned, 0 skipped, 0 failed", result.stdout)
+        self.assertIn(f"{self.repositories} cloned, 0 skipped, 0 failed", result.stdout)
         self.assertIn(f'code "{(self.workspace / "opentlv.code-workspace").as_posix()}"', result.stdout)
         self.assertEqual(
             self.run_git("-C", self.destination, "config", "--local", "--get", "remote.origin.url"),
@@ -131,7 +134,7 @@ class BootstrapTests(unittest.TestCase):
         )
         result = self.run_bootstrap()
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertIn("1 skipped", result.stdout)
+        self.assertIn(f"0 cloned, {self.repositories} skipped, 0 failed", result.stdout)
 
     def test_repeat_preserves_branch_index_and_local_changes_without_fetching(self):
         self.clone()
@@ -147,7 +150,7 @@ class BootstrapTests(unittest.TestCase):
         self.source.rename(self.root / "source unavailable")
         result = self.run_bootstrap("--protocol", "ssh")
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertIn("0 cloned, 1 skipped, 0 failed", result.stdout)
+        self.assertIn(f"0 cloned, {self.repositories} skipped, 0 failed", result.stdout)
         self.assertEqual((self.destination / ".git/index").read_bytes(), index)
         self.assertEqual(self.run_git("-C", self.destination, "rev-parse", "HEAD"), head)
         self.assertEqual(self.run_git("-C", self.destination, "branch", "--show-current"), "local-work")

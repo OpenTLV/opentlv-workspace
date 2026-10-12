@@ -2,11 +2,15 @@
 	"folders": [
 		{
 			"path": ".",
-			"name": "workspace"
+			"name": "opentlv-workspace"
 		},
 		{
 			"path": "../opentlv",
 			"name": "opentlv"
+		},
+		{
+			"path": "../opentlv-docs",
+			"name": "opentlv-docs"
 		}
 	],
 	"settings": {}

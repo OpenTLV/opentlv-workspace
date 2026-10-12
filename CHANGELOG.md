@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Workspace folder names now match their repository names: `workspace` is now `opentlv-workspace`, and the documentation folder is `opentlv-docs`. (#23)
 - License validation now covers repository-wide metadata instead of exact Python header matching. REUSE tooling requires Python 3.10+ in an isolated contributor environment; bootstrap dependencies and Python 3.9+ support remain unchanged. (#21)
 - Explicit LF line-ending rules now include TOML configuration files. (#21)
 
@@ -25,6 +26,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- OpenTLV documentation folder (`../opentlv-docs`) in the workspace, with existing folders and settings preserved. (#23)
+- Bootstrap cloning of the missing `opentlv-docs` repository, keeping bootstrap destinations aligned with the workspace roots, with offline test sources for every bootstrap repository. (#23)
+- README setup instructions for the documentation repository, with documentation builds, tests, and publishing left to `opentlv-docs`. (#23)
 - Automatic REUSE annotation of workspace Python sources before license validation, with an explicit author and year, a source-header template, and exclusions for third-party, generated, and binary fixture directories. (#21)
 - Pinned REUSE pre-commit hook and contributor dependency with Windows-compatible encoding detection, explicit file annotations in `REUSE.toml`, and the MIT license text in `LICENSES/`. (#21)
 - Contribution guidance for repository-wide license validation, binary sidecars, third-party notices, and REUSE's limits compared with the source-header convention. (#21)
