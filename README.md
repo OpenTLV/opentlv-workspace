@@ -2,15 +2,15 @@
 
 Official Visual Studio Code multi-root workspace for developing the OpenTLV ecosystem.
 
-This repository provides the shared editor configuration and workspace documentation for working with the `opentlv` and `opentlv-docs` repositories.
+This repository provides the shared editor configuration and workspace documentation for working with the `opentlv`, `opentlv-cli`, and `opentlv-docs` repositories.
 
 ## Overview
 
-The workspace currently opens three repositories: `opentlv-workspace`, `opentlv`, and `opentlv-docs`. The `opentlv` repository contains the C core, C++ API, CLI, and language bindings. The `opentlv-docs` repository contains the OpenTLV documentation.
+The workspace opens four repositories: `opentlv-workspace`, `opentlv`, `opentlv-docs`, and `opentlv-cli`. The `opentlv` repository contains the C core, C++ API, and language bindings. The `opentlv-cli` repository is the standalone CLI project under extraction; the existing CLI implementation remains in Core until migration and regression validation are complete. The `opentlv-docs` repository assembles and publishes the OpenTLV documentation.
 
 The workspace uses native Visual Studio Code functionality to work with multiple repositories in a single editor window.
 
-**The workspace is optional.** You can open, build, test, and develop `opentlv` without this repository. Component build and release workflows are maintained in `opentlv`. Documentation builds, tests, and publishing are maintained in `opentlv-docs`.
+**The workspace is optional.** Each component can be developed without this repository. Core build and release workflows are maintained in `opentlv`; standalone CLI development belongs to `opentlv-cli`. Documentation builds, tests, and publishing are maintained in `opentlv-docs`.
 
 ## Prerequisites
 
@@ -30,7 +30,7 @@ git clone https://github.com/OpenTLV/opentlv-workspace.git
 python opentlv-workspace/scripts/bootstrap.py
 ```
 
-The script clones the missing `OpenTLV/opentlv` and `OpenTLV/opentlv-docs` repositories next to `opentlv-workspace` using HTTPS by default. To use SSH instead, with GitHub SSH access configured:
+The script clones the missing `OpenTLV/opentlv`, `OpenTLV/opentlv-docs`, and `OpenTLV/opentlv-cli` repositories next to `opentlv-workspace` using HTTPS by default. To use SSH instead, with GitHub SSH access configured:
 
 ```bash
 python opentlv-workspace/scripts/bootstrap.py --protocol ssh
@@ -40,7 +40,7 @@ Destinations are resolved from the script's location, so the script can be invok
 
 Existing checkouts are skipped only when their root and `origin` identify the expected repository. GitHub HTTPS and SSH URL forms are accepted interchangeably. The script does not fetch, pull, switch branches, or modify local changes in existing checkouts. Conflicting files, directories, or repositories are left untouched and reported with a nonzero exit status.
 
-If cloning fails, inspect the reported destination before retrying. The script does not delete failed clone output. It does not build components or documentation or install dependencies; CLI and bindings remain part of the `opentlv` checkout.
+If cloning fails, inspect the reported destination before retrying. The script does not delete failed clone output. It does not build components or documentation or install dependencies.
 
 ### Manual Setup
 
@@ -52,6 +52,7 @@ cd OpenTLV
 git clone git@github.com:OpenTLV/opentlv-workspace.git
 git clone git@github.com:OpenTLV/opentlv.git
 git clone git@github.com:OpenTLV/opentlv-docs.git
+git clone git@github.com:OpenTLV/opentlv-cli.git
 ```
 
 These clone commands use SSH and require GitHub SSH access. If you already have a parent directory for OpenTLV checkouts, use it instead of creating a new one.
@@ -62,6 +63,7 @@ The resulting directory structure should look like this:
 OpenTLV/
 ├── opentlv/
 ├── opentlv-docs/
+├── opentlv-cli/
 └── opentlv-workspace/
     └── opentlv.code-workspace
 ```
@@ -79,8 +81,9 @@ The roots in `opentlv.code-workspace` use paths relative to the workspace reposi
 | VS Code Root | Relative Path | Repository | Purpose |
 | --- | --- | --- | --- |
 | `opentlv-workspace` | `.` | `opentlv-workspace` | Shared VS Code configuration and workspace documentation |
-| `opentlv` | `../opentlv` | `opentlv` | C core, C++ API, CLI, and language bindings |
+| `opentlv` | `../opentlv` | `opentlv` | C core, C++ API, and language bindings |
 | `opentlv-docs` | `../opentlv-docs` | `opentlv-docs` | OpenTLV documentation |
+| `opentlv-cli` | `../opentlv-cli` | `opentlv-cli` | Standalone CLI foundation and migration |
 
 Components currently live inside `opentlv`:
 
@@ -88,10 +91,10 @@ Components currently live inside `opentlv`:
 | --- | --- |
 | `tlv/` | C core |
 | `tlv++/` | C++ API |
-| `tools/cli/` | Command-line interface |
+| `tools/cli/` | Existing CLI implementation, retained until standalone migration is validated |
 | `bindings/` | Go, Lua, Python, Rust, and JavaScript/WebAssembly bindings |
 
-CLI and binding development uses this same checkout; separate component repositories are not required.
+Bindings currently use the Core checkout. Work on the standalone CLI foundation uses `opentlv-cli`; follow its README for the currently available build steps and migration status.
 
 ## Development Documentation
 
@@ -104,6 +107,8 @@ Follow the documentation in `opentlv` for component prerequisites, build command
 
 Follow the [`opentlv-docs`](https://github.com/OpenTLV/opentlv-docs) repository for documentation builds, tests, and publishing.
 
+Follow [`opentlv-cli`](https://github.com/OpenTLV/opentlv-cli) for standalone CLI setup and development. Opening sibling repositories does not configure a Core dependency; that integration belongs to the CLI project.
+
 For changes to this workspace repository, see [CONTRIBUTING.md](CONTRIBUTING.md).
 
 Optional contributor tooling is described in [Pre-commit Checks](CONTRIBUTING.md#pre-commit-checks). Bootstrap itself still requires only Python and Git.
@@ -111,7 +116,7 @@ Optional contributor tooling is described in [Pre-commit Checks](CONTRIBUTING.md
 ## Development Principles
 
 - Use native VS Code multi-root workspace functionality.
-- Keep `opentlv` and `opentlv-docs` buildable and testable without the workspace repository.
+- Keep `opentlv`, `opentlv-cli`, and `opentlv-docs` independent of the workspace repository.
 - Use the component build and package tools documented in `opentlv`.
 - Keep build, test, and release workflows with the components they serve.
 - Keep build artifacts and local configuration outside version control.

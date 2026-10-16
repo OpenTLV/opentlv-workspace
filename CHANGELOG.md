@@ -26,6 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Add `opentlv-cli` to the VS Code workspace, HTTPS/SSH bootstrap cloning, and setup documentation for standalone CLI development. (OpenTLV/opentlv-cli#1)
 - OpenTLV documentation folder (`../opentlv-docs`) in the workspace, with existing folders and settings preserved. (#23)
 - Bootstrap cloning of the missing `opentlv-docs` repository, keeping bootstrap destinations aligned with the workspace roots, with offline test sources for every bootstrap repository. (#23)
 - README setup instructions for the documentation repository, with documentation builds, tests, and publishing left to `opentlv-docs`. (#23)
