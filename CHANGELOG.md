@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Document the completed Lua extraction, explicit sibling Core selection and standalone API, build and test instructions. (OpenTLV/opentlv-docs#27)
 - Workspace folder names now match their repository names: `workspace` is now `opentlv-workspace`, and the documentation folder is `opentlv-docs`. (#23)
 - License validation now covers repository-wide metadata instead of exact Python header matching. REUSE tooling requires Python 3.10+ in an isolated contributor environment; bootstrap dependencies and Python 3.9+ support remain unchanged. (#21)
 - Explicit LF line-ending rules now include TOML configuration files. (#21)
