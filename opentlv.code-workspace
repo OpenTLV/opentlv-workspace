@@ -15,6 +15,10 @@
 		{
 			"path": "../opentlv-cli",
 			"name": "opentlv-cli"
+		},
+		{
+			"path": "../opentlv-lua",
+			"name": "opentlv-lua"
 		}
 	],
 	"settings": {}
