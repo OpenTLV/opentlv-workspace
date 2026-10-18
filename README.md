@@ -6,7 +6,7 @@ This repository provides the shared editor configuration and workspace documenta
 
 ## Overview
 
-The workspace opens five repositories: `opentlv-workspace`, `opentlv`, `opentlv-docs`, `opentlv-cli`, and `opentlv-lua`. The `opentlv` repository contains the C core, C++ API, and language bindings. The `opentlv-cli` repository is the standalone CLI project under extraction; the existing CLI implementation remains in Core until migration and regression validation are complete. The `opentlv-lua` repository is the destination for the Lua binding extraction; its implementation currently remains in Core. The `opentlv-docs` repository assembles and publishes the OpenTLV documentation.
+The workspace opens five repositories: `opentlv-workspace`, `opentlv`, `opentlv-docs`, `opentlv-cli`, and `opentlv-lua`. The `opentlv` repository contains the C core, C++ API, and language bindings. The `opentlv-cli` and `opentlv-lua` repositories own the standalone CLI and Lua implementation, tests, packaging and documentation; both have been extracted from Core. The `opentlv-docs` repository assembles and publishes the OpenTLV documentation.
 
 The workspace uses native Visual Studio Code functionality to work with multiple repositories in a single editor window.
 
@@ -85,8 +85,8 @@ The roots in `opentlv.code-workspace` use paths relative to the workspace reposi
 | `opentlv-workspace` | `.` | `opentlv-workspace` | Shared VS Code configuration and workspace documentation |
 | `opentlv` | `../opentlv` | `opentlv` | C core, C++ API, and language bindings |
 | `opentlv-docs` | `../opentlv-docs` | `opentlv-docs` | OpenTLV documentation |
-| `opentlv-cli` | `../opentlv-cli` | `opentlv-cli` | Standalone CLI foundation and migration |
-| `opentlv-lua` | `../opentlv-lua` | `opentlv-lua` | Standalone Lua binding foundation and migration |
+| `opentlv-cli` | `../opentlv-cli` | `opentlv-cli` | Standalone CLI, tests and documentation |
+| `opentlv-lua` | `../opentlv-lua` | `opentlv-lua` | Standalone Lua binding, tests, packaging and documentation |
 
 Components currently live inside `opentlv`:
 
@@ -94,16 +94,24 @@ Components currently live inside `opentlv`:
 | --- | --- |
 | `tlv/` | C core |
 | `tlv++/` | C++ API |
-| `tools/cli/` | Existing CLI implementation, retained until standalone migration is validated |
-| `bindings/` | Go, Lua, Python, Rust, and JavaScript/WebAssembly bindings |
+| `bindings/` | Go, Python, Rust, and JavaScript/WebAssembly bindings |
 
-Bindings currently use the Core checkout. Work on the standalone CLI foundation uses `opentlv-cli`; follow its README for the currently available build steps and migration status.
+The in-tree bindings use the Core checkout. Standalone CLI and Lua development uses `opentlv-cli` and `opentlv-lua`, with Core selected by each component's build system.
 
 ### Lua and Local Core Development
 
 Keep `opentlv-lua` and `opentlv` next to each other as shown above. This makes the Core checkout available at `../opentlv` relative to the Lua repository and opens both repositories for side-by-side editing.
 
-The Lua repository currently contains its initial README and MIT license. Source migration and the standalone build are separate steps. This workspace integration prepares the sibling layout only; opening the workspace does not configure or build Lua. Local Core dependency resolution belongs to the Lua build system and is tracked in [opentlv-lua#2](https://github.com/OpenTLV/opentlv-lua/issues/2).
+Opening the workspace does not configure or build Lua. From `opentlv-lua`, explicitly select the sibling Core checkout:
+
+```sh
+cmake -S . -B build/local -DCMAKE_BUILD_TYPE=Release \
+    -DFETCHCONTENT_SOURCE_DIR_OPENTLV_CORE=/absolute/path/to/opentlv
+cmake --build build/local --target opentlv_lua --config Release
+ctest --test-dir build/local -C Release --output-on-failure
+```
+
+See the [Lua development guide](https://github.com/OpenTLV/opentlv-lua/blob/main/docs/development.md) for Lua headers, module loading, installed or pinned remote Core selection and LuaRocks. The [testing guide](https://github.com/OpenTLV/opentlv-lua/blob/main/docs/testing.md) describes interpreter/Busted prerequisites and the complete CI runner. Missing runtime dependencies can skip tests in ordinary CMake builds.
 
 The Lua build must remain usable without this workspace or a sibling Core checkout. Its dependency configuration belongs in `opentlv-lua`, not in shared VS Code settings.
 
@@ -113,14 +121,14 @@ Follow the documentation in `opentlv` for component prerequisites, build command
 
 - [Getting started](https://github.com/OpenTLV/opentlv/blob/main/docs/getting-started/README.md): build setup and language quick starts.
 - [Contributing](https://github.com/OpenTLV/opentlv/blob/main/CONTRIBUTING.md) and [development workflow](https://github.com/OpenTLV/opentlv/blob/main/docs/development/workflow.md): contribution checks, testing, and releases.
-- [CLI guide](https://github.com/OpenTLV/opentlv/blob/main/docs/cli/README.md): command-line tools.
+- [CLI guide](https://github.com/OpenTLV/opentlv-cli/blob/main/docs/README.md): command-line tools.
 - [Bindings overview](https://github.com/OpenTLV/opentlv/blob/main/docs/concepts/bindings.md): language integration and links to binding guides.
 
 Follow the [`opentlv-docs`](https://github.com/OpenTLV/opentlv-docs) repository for documentation builds, tests, and publishing.
 
 Follow [`opentlv-cli`](https://github.com/OpenTLV/opentlv-cli) for standalone CLI setup and development. Opening sibling repositories does not configure a Core dependency; that integration belongs to the CLI project.
 
-Follow [`opentlv-lua`](https://github.com/OpenTLV/opentlv-lua) for Lua migration status and, once available, standalone build and test instructions. The existing Lua implementation remains under `opentlv/bindings/lua` during this workspace preparation step.
+Follow the standalone [Lua API guide](https://github.com/OpenTLV/opentlv-lua/blob/main/docs/api.md), [build instructions](https://github.com/OpenTLV/opentlv-lua/blob/main/docs/development.md), and [tests and CI](https://github.com/OpenTLV/opentlv-lua/blob/main/docs/testing.md).
 
 For changes to this workspace repository, see [CONTRIBUTING.md](CONTRIBUTING.md).
 
