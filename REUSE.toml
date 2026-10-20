@@ -13,13 +13,15 @@ path = [
     ".github/ISSUE_TEMPLATE/chore.yml",
     ".github/ISSUE_TEMPLATE/config.yml",
     ".github/PULL_REQUEST_TEMPLATE.md",
-    ".github/workflows/ci.yml",
     "CHANGELOG.md",
     "CODE_OF_CONDUCT.md",
     "CONTRIBUTING.md",
     "README.md",
     "SECURITY.md",
     "opentlv.code-workspace",
+    "integration.json",
+    "docs/integration.md",
+    "docs/ci-baseline.json",
     "requirements-dev.txt",
 ]
 precedence = "aggregate"

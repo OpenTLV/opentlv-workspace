@@ -1,0 +1,57 @@
+# SPDX-License-Identifier: MIT
+# Copyright (c) 2026 Marek Cingel
+
+name: Workspace Main
+on:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+concurrency:
+  group: workspace-main
+  cancel-in-progress: false
+
+jobs:
+  smoke:
+    name: Main smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: '3.11'
+      - run: |
+          python -B scripts/integration.py fast
+          python -B tests/test_bootstrap.py -v
+  gate:
+    name: Workspace main gate
+    if: always()
+    needs: [smoke]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - name: Require Main smoke
+        env:
+          SMOKE: ${{ needs.smoke.result }}
+        run: test "$SMOKE" = success
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        if: always()
+        with:
+          persist-credentials: false
+      - name: Record Main job timings
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python -B scripts/ci_timings.py --current --job 'Main smoke' --output build/timings/main.json
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: always()
+        with:
+          name: workspace-main-timings-${{ github.run_attempt }}
+          path: build/timings/main.json
+          if-no-files-found: error

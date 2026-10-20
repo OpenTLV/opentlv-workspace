@@ -134,6 +134,14 @@ For changes to this workspace repository, see [CONTRIBUTING.md](CONTRIBUTING.md)
 
 Optional contributor tooling is described in [Pre-commit Checks](CONTRIBUTING.md#pre-commit-checks). Bootstrap itself still requires only Python and Git.
 
+## Workspace Integration CI
+
+Four workflows separate PR validation, lightweight Main smoke, manual Full integration and a manual Release Gate. PR checks configuration, formatting, offline bootstrap and orchestration without building components. Main checks configuration and bootstrap on Linux. Full builds CLI and Lua against sibling and remote Core revisions and checks portal assembly/navigation. Release reruns Full on the exact dispatch commit before publishing an attested integration snapshot; component releases remain independent.
+
+[integration.json](integration.json) pins the repository combination used by CI; it does not select component release versions or change bootstrap behavior. See [integration quality gates](docs/integration.md) for supported configurations, local commands, revision evidence, the required merge check and performance measurements.
+
+Maintainers review pins at least monthly and after relevant upstream changes through the [manifest update process](docs/integration.md#maintaining-the-integration-manifest). Passing the pinned combination does not establish compatibility with newer upstream heads.
+
 ## Development Principles
 
 - Use native VS Code multi-root workspace functionality.

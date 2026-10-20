@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Separate PR validation, lightweight Main smoke, manual Full integration and a Release Gate for attested workspace snapshots; document reviewed integration-pin updates. (#31)
 - Document the completed Lua extraction, explicit sibling Core selection and standalone API, build and test instructions. (OpenTLV/opentlv-docs#27)
 - Workspace folder names now match their repository names: `workspace` is now `opentlv-workspace`, and the documentation folder is `opentlv-docs`. (#23)
 - License validation now covers repository-wide metadata instead of exact Python header matching. REUSE tooling requires Python 3.10+ in an isolated contributor environment; bootstrap dependencies and Python 3.9+ support remain unchanged. (#21)
@@ -20,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Point PR CI's pip cache at the contributor requirements file so Python setup succeeds. (#31)
 - Large-file checks now include already committed files, so the size limit is enforced in clean CI checkouts. (#17)
 - Added the missing final newline in `opentlv.code-workspace`. (#15)
 - Corrected the workspace copyright attribution to Marek Cingel, matching the OpenTLV repository. (#11)
@@ -27,6 +29,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Add pinned sibling and remote repository integration, CLI/Lua and documentation smoke checks, dependency provenance, timing evidence and aggregate quality gates. (#31)
 - Add `opentlv-lua` to the VS Code workspace, HTTPS/SSH bootstrap cloning, and setup documentation with the sibling Core layout. (#28)
 - Add `opentlv-cli` to the VS Code workspace, HTTPS/SSH bootstrap cloning, and setup documentation for standalone CLI development. (OpenTLV/opentlv-cli#1)
 - OpenTLV documentation folder (`../opentlv-docs`) in the workspace, with existing folders and settings preserved. (#23)

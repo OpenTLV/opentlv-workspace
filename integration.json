@@ -1,0 +1,25 @@
+{
+  "schema": 1,
+  "repositories": {
+    "core": {
+      "directory": "opentlv",
+      "repository": "https://github.com/OpenTLV/opentlv.git",
+      "revision": "1ed4e0f63360755472bdebee1fa1e1609b190e98"
+    },
+    "cli": {
+      "directory": "opentlv-cli",
+      "repository": "https://github.com/OpenTLV/opentlv-cli.git",
+      "revision": "abd2bce09a9f25071a41d7c1f3249fd48e8a0b20"
+    },
+    "lua": {
+      "directory": "opentlv-lua",
+      "repository": "https://github.com/OpenTLV/opentlv-lua.git",
+      "revision": "c463066ca24f524d3ae9c7dff949796629367d03"
+    },
+    "docs": {
+      "directory": "opentlv-docs",
+      "repository": "https://github.com/OpenTLV/opentlv-docs.git",
+      "revision": "7e641f1f445d88bab7c2ffaa4693265ac31b2ba9"
+    }
+  }
+}

@@ -117,7 +117,7 @@ pre-commit run --all-files
 
 Git is required. The first run downloads the pinned hook environments and may take longer; Markdownlint's Node environment is managed by pre-commit. Hook installation applies only to this repository. Bootstrap does not install dependencies or activate hooks.
 
-Checks use `pre-commit-hooks` and `markdownlint-cli` to cover whitespace, final newlines, YAML and JSON syntax, Python syntax, Markdown, and large files (500 KiB by default). Markdownlint uses `.markdownlint.json`. The JSON hook excludes `.code-workspace` files because they may contain JSONC comments; workspace syntax is reviewed manually.
+Checks use `pre-commit-hooks` and `markdownlint-cli` to cover whitespace, final newlines, YAML and JSON syntax, Python syntax, Markdown, and large files (500 KiB by default). Markdownlint uses `.markdownlint.json`. The JSON hook excludes `.code-workspace` files; Fast CI validates our workspace's strict JSON syntax, root paths and integration consistency separately.
 
 The local `reuse-annotate` hook first runs pinned `reuse annotate` on selected `.py` and `.pyi` files under `scripts/` and `tests/`, excluding third-party, generated, and binary fixture directories. It supplies MIT and `Copyright (c) 2026 Marek Cingel`, using [.reuse/templates/source-header.jinja2](.reuse/templates/source-header.jinja2) to place the SPDX identifier first. The year is pinned explicitly rather than taken from the current date. The hook can also reformat existing headers and add these notices alongside existing metadata; review the result and keep externally owned sources in the excluded directories. Repeated runs on the resulting headers do not add duplicates.
 
@@ -149,14 +149,20 @@ The tests run copies of the script against local Git repositories in system temp
 
 ## Continuous Integration
 
-The [Workspace CI workflow](.github/workflows/ci.yml) runs on pull requests, pushes to `main`, and manual dispatches:
+Workspace CI has four separate entry points:
 
-- **Pre-commit:** runs the existing hooks on Linux, using `requirements-dev.txt` for contributor dependencies.
-- **Bootstrap:** runs the existing offline tests on Linux, Windows, and macOS with Python 3.11 and Git, without third-party Python dependencies.
+- [PR](.github/workflows/workspace-pr.yml): pre-commit, configuration, manifest and orchestration regressions, plus offline bootstrap on Linux, Windows and macOS.
+- [Main](.github/workflows/workspace-main.yml): configuration and offline bootstrap smoke on Linux, without component downloads or builds.
+- [Full](.github/workflows/workspace-full.yml): manual or Release Gate invocation; sibling and remote integration on Ubuntu 24.04 with Lua 5.4 and portal assembly/navigation.
+- [Release](.github/workflows/workspace-release.yml): manual tag input; same-attempt Full evidence, checksums and attestations before publishing a verified workspace snapshot.
 
-Each job checks out only this workspace repository. Bootstrap tests use local Git fixtures in temporary directories and disable network Git protocols; no sibling `opentlv` checkout is required or cloned. The workflow uses read-only repository permissions, does not persist checkout credentials, and does not commit or push hook fixes. A failed check fails its job; review the reported diff and apply any fixes locally.
+Each workflow has an aggregate gate rejecting failed, cancelled, missing or skipped dependencies. Make the PR check **Workspace integration gate** required in the branch ruleset; YAML alone does not enforce that setting. PR and Main never invoke Full automatically.
 
-Local validation uses the pre-commit and bootstrap commands above. Report local results separately from GitHub Actions results; declaring a platform in the workflow does not mean it has already passed there.
+Workspace maintainers review integration pins at least monthly and after relevant component releases or contract changes. Follow the [manifest update process](docs/integration.md#maintaining-the-integration-manifest): propose exact candidate SHAs, attach manual Full evidence to the update PR, and track incompatible candidates with their component owners.
+
+Bootstrap uses local fixtures with network Git protocols disabled. Full CI uses disposable checkouts selected by [integration.json](integration.json) and records actual dependency revisions. Validation jobs have read-only repository permissions. Release grants attestation permissions only to assembly and contents-write only to publication. Checkouts never persist credentials.
+
+See [Workspace integration quality gates](docs/integration.md) for local commands, test ownership, supported configurations, selection rules and performance evidence. Keep component test suites in their repositories. Report local results separately from GitHub Actions results; declaring a platform in the workflow does not mean it has already passed there.
 
 ## Development Independence
 
