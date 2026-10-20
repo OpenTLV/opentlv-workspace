@@ -107,6 +107,10 @@ class EvidenceTests(unittest.TestCase):
             ("sources", "cli", "commit", "d" * 40),
             ("sources", "lua", "dirty", True),
             ("sources", "docs", "repository", "https://github.com/other/portal"),
+            ("sources", "python", "commit", "d" * 40),
+            ("sources", "python", "configured_revision", "d" * 40),
+            ("sources", "python", "repository", "https://github.com/other/opentlv-python"),
+            ("sources", "python", "dirty", True),
             ("core_dependencies", "cli", "commit", "d" * 40),
             ("core_dependencies", "lua", "declared_pin", "main"),
             ("core_dependencies", "lua", "mode", "remote"),
@@ -115,6 +119,19 @@ class EvidenceTests(unittest.TestCase):
             report[section][key][field] = value
             with self.subTest(section=section, key=key, field=field), self.assertRaises(ValueError):
                 quality.validate_report(report, "sibling", self.locked)
+
+    def test_python_checkout_required_in_both_scenarios(self):
+        for mode in ("sibling", "remote"):
+            report = copy.deepcopy(self.evidence["reports"][mode])
+            del report["sources"]["python"]
+            with self.subTest(mode=mode), self.assertRaises(ValueError):
+                quality.validate_report(report, mode, self.locked)
+
+    def test_python_runtime_success_is_not_part_of_checkout_coverage(self):
+        report = copy.deepcopy(self.evidence["reports"]["sibling"])
+        report["checks"]["python"] = "passed"
+        with self.assertRaises(ValueError):
+            quality.validate_report(report, "sibling", self.locked)
 
     def test_missing_dirty_duplicate_or_moving_docs_sources(self):
         for field, value in (("dirty", True), ("included", False), ("commit", "d" * 40),

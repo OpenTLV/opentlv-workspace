@@ -19,6 +19,10 @@
 		{
 			"path": "../opentlv-lua",
 			"name": "opentlv-lua"
+		},
+		{
+			"path": "../opentlv-python",
+			"name": "opentlv-python"
 		}
 	],
 	"settings": {}

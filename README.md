@@ -2,15 +2,15 @@
 
 Official Visual Studio Code multi-root workspace for developing the OpenTLV ecosystem.
 
-This repository provides the shared editor configuration and workspace documentation for working with the `opentlv`, `opentlv-cli`, `opentlv-lua`, and `opentlv-docs` repositories.
+This repository provides the shared editor configuration and workspace documentation for working with the `opentlv`, `opentlv-cli`, `opentlv-lua`, `opentlv-python`, and `opentlv-docs` repositories.
 
 ## Overview
 
-The workspace opens five repositories: `opentlv-workspace`, `opentlv`, `opentlv-docs`, `opentlv-cli`, and `opentlv-lua`. The `opentlv` repository contains the C core, C++ API, and language bindings. The `opentlv-cli` and `opentlv-lua` repositories own the standalone CLI and Lua implementation, tests, packaging and documentation; both have been extracted from Core. The `opentlv-docs` repository assembles and publishes the OpenTLV documentation.
+The workspace opens six repositories: `opentlv-workspace`, `opentlv`, `opentlv-docs`, `opentlv-cli`, `opentlv-lua`, and `opentlv-python`. The `opentlv` repository contains the C core, C++ API, and language bindings. The `opentlv-cli` and `opentlv-lua` repositories own the standalone CLI and Lua implementation, tests, packaging and documentation; both have been extracted from Core. The `opentlv-python` repository is the destination for the standalone Python binding; its pinned revision is an initial scaffold, and Python implementation and build instructions still live in Core. The `opentlv-docs` repository assembles and publishes the OpenTLV documentation.
 
 The workspace uses native Visual Studio Code functionality to work with multiple repositories in a single editor window.
 
-**The workspace is optional.** Each component can be developed without this repository. Core build and release workflows are maintained in `opentlv`; standalone CLI development belongs to `opentlv-cli`, and standalone Lua development belongs to `opentlv-lua`. Documentation builds, tests, and publishing are maintained in `opentlv-docs`.
+**The workspace is optional.** Each component can be developed without this repository. Core build and release workflows are maintained in `opentlv`; standalone CLI development belongs to `opentlv-cli`, standalone Lua development belongs to `opentlv-lua`, and standalone Python build and packaging configuration belongs to `opentlv-python` as it is introduced. Documentation builds, tests, and publishing are maintained in `opentlv-docs`.
 
 ## Prerequisites
 
@@ -30,7 +30,7 @@ git clone https://github.com/OpenTLV/opentlv-workspace.git
 python opentlv-workspace/scripts/bootstrap.py
 ```
 
-The script clones the missing `OpenTLV/opentlv`, `OpenTLV/opentlv-docs`, `OpenTLV/opentlv-cli`, and `OpenTLV/opentlv-lua` repositories next to `opentlv-workspace` using HTTPS by default. To use SSH instead, with GitHub SSH access configured:
+The script clones the missing `OpenTLV/opentlv`, `OpenTLV/opentlv-docs`, `OpenTLV/opentlv-cli`, `OpenTLV/opentlv-lua`, and `OpenTLV/opentlv-python` repositories next to `opentlv-workspace` using HTTPS by default. To use SSH instead, with GitHub SSH access configured:
 
 ```bash
 python opentlv-workspace/scripts/bootstrap.py --protocol ssh
@@ -54,6 +54,7 @@ git clone git@github.com:OpenTLV/opentlv.git
 git clone git@github.com:OpenTLV/opentlv-docs.git
 git clone git@github.com:OpenTLV/opentlv-cli.git
 git clone git@github.com:OpenTLV/opentlv-lua.git
+git clone git@github.com:OpenTLV/opentlv-python.git
 ```
 
 These clone commands use SSH and require GitHub SSH access. If you already have a parent directory for OpenTLV checkouts, use it instead of creating a new one.
@@ -66,6 +67,7 @@ OpenTLV/
 ├── opentlv-docs/
 ├── opentlv-cli/
 ├── opentlv-lua/
+├── opentlv-python/
 └── opentlv-workspace/
     └── opentlv.code-workspace
 ```
@@ -87,6 +89,7 @@ The roots in `opentlv.code-workspace` use paths relative to the workspace reposi
 | `opentlv-docs` | `../opentlv-docs` | `opentlv-docs` | OpenTLV documentation |
 | `opentlv-cli` | `../opentlv-cli` | `opentlv-cli` | Standalone CLI, tests and documentation |
 | `opentlv-lua` | `../opentlv-lua` | `opentlv-lua` | Standalone Lua binding, tests, packaging and documentation |
+| `opentlv-python` | `../opentlv-python` | `opentlv-python` | Standalone Python binding repository; initial scaffold pending extraction |
 
 Components currently live inside `opentlv`:
 
@@ -115,6 +118,14 @@ See the [Lua development guide](https://github.com/OpenTLV/opentlv-lua/blob/main
 
 The Lua build must remain usable without this workspace or a sibling Core checkout. Its dependency configuration belongs in `opentlv-lua`, not in shared VS Code settings.
 
+### Python and Local Core Development
+
+Keep `opentlv-python` and `opentlv` as sibling checkouts. From `opentlv-python`, the local Core source is at `../opentlv`; both repositories are visible in the editor. Bootstrap prepares this layout without changing existing checkouts or configuring dependencies.
+
+The Python revision pinned by this workspace is an initial repository scaffold with no standalone build configuration. Continue using the Python build instructions in the Core checkout until extraction provides a standalone build. Adding this workspace root does not move the in-tree binding or change its development workflow.
+
+Follow [`opentlv-python`](https://github.com/OpenTLV/opentlv-python) for the standalone build and local Core selection contract as it becomes available. The workspace supplies no Python environment, import path or CMake override. Python must remain independently buildable without this workspace or a sibling Core checkout; dependency selection belongs to the Python repository.
+
 ## Development Documentation
 
 Follow the documentation in `opentlv` for component prerequisites, build commands, and testing:
@@ -136,7 +147,7 @@ Optional contributor tooling is described in [Pre-commit Checks](CONTRIBUTING.md
 
 ## Workspace Integration CI
 
-Four workflows separate PR validation, lightweight Main smoke, manual Full integration and a manual Release Gate. PR checks configuration, formatting, offline bootstrap and orchestration without building components. Main checks configuration and bootstrap on Linux. Full builds CLI and Lua against sibling and remote Core revisions and checks portal assembly/navigation. Release reruns Full on the exact dispatch commit before publishing an attested integration snapshot; component releases remain independent.
+Four workflows separate PR validation, lightweight Main smoke, manual Full integration and a manual Release Gate. PR checks configuration, formatting, offline bootstrap and orchestration without building components. Main checks configuration and bootstrap on Linux. Full builds CLI and Lua against sibling and remote Core revisions and checks portal assembly/navigation. Python coverage validates its pinned checkout identity in both scenarios; it does not yet build or import Python or verify its Core dependency selection. Release reruns Full on the exact dispatch commit before publishing an attested integration snapshot; component releases remain independent.
 
 [integration.json](integration.json) pins the repository combination used by CI; it does not select component release versions or change bootstrap behavior. See [integration quality gates](docs/integration.md) for supported configurations, local commands, revision evidence, the required merge check and performance measurements.
 
@@ -145,7 +156,7 @@ Maintainers review pins at least monthly and after relevant upstream changes thr
 ## Development Principles
 
 - Use native VS Code multi-root workspace functionality.
-- Keep `opentlv`, `opentlv-cli`, `opentlv-lua`, and `opentlv-docs` independent of the workspace repository.
+- Keep `opentlv`, `opentlv-cli`, `opentlv-lua`, `opentlv-python`, and `opentlv-docs` independent of the workspace repository.
 - Use the component build and package tools documented in `opentlv`.
 - Keep build, test, and release workflows with the components they serve.
 - Keep build artifacts and local configuration outside version control.

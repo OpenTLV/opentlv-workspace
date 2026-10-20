@@ -153,7 +153,7 @@ Workspace CI has four separate entry points:
 
 - [PR](.github/workflows/workspace-pr.yml): pre-commit, configuration, manifest and orchestration regressions, plus offline bootstrap on Linux, Windows and macOS.
 - [Main](.github/workflows/workspace-main.yml): configuration and offline bootstrap smoke on Linux, without component downloads or builds.
-- [Full](.github/workflows/workspace-full.yml): manual or Release Gate invocation; sibling and remote integration on Ubuntu 24.04 with Lua 5.4 and portal assembly/navigation.
+- [Full](.github/workflows/workspace-full.yml): manual or Release Gate invocation; sibling and remote integration on Ubuntu 24.04 with Lua 5.4 and portal assembly/navigation. Python is included in pinned checkout validation only, pending its standalone build contract.
 - [Release](.github/workflows/workspace-release.yml): manual tag input; same-attempt Full evidence, checksums and attestations before publishing a verified workspace snapshot.
 
 Each workflow has an aggregate gate rejecting failed, cancelled, missing or skipped dependencies. Make the PR check **Workspace integration gate** required in the branch ruleset; YAML alone does not enforce that setting. PR and Main never invoke Full automatically.
