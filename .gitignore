@@ -21,3 +21,6 @@ __pycache__/
 
 # Local contributor tooling
 .venv/
+
+# Disposable workspace integration checkouts, builds and evidence
+build/

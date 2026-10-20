@@ -117,7 +117,7 @@ pre-commit run --all-files
 
 Git is required. The first run downloads the pinned hook environments and may take longer; Markdownlint's Node environment is managed by pre-commit. Hook installation applies only to this repository. Bootstrap does not install dependencies or activate hooks.
 
-Checks use `pre-commit-hooks` and `markdownlint-cli` to cover whitespace, final newlines, YAML and JSON syntax, Python syntax, Markdown, and large files (500 KiB by default). Markdownlint uses `.markdownlint.json`. The JSON hook excludes `.code-workspace` files because they may contain JSONC comments; workspace syntax is reviewed manually.
+Checks use `pre-commit-hooks` and `markdownlint-cli` to cover whitespace, final newlines, YAML and JSON syntax, Python syntax, Markdown, and large files (500 KiB by default). Markdownlint uses `.markdownlint.json`. The JSON hook excludes `.code-workspace` files; Fast CI validates our workspace's strict JSON syntax, root paths and integration consistency separately.
 
 The local `reuse-annotate` hook first runs pinned `reuse annotate` on selected `.py` and `.pyi` files under `scripts/` and `tests/`, excluding third-party, generated, and binary fixture directories. It supplies MIT and `Copyright (c) 2026 Marek Cingel`, using [.reuse/templates/source-header.jinja2](.reuse/templates/source-header.jinja2) to place the SPDX identifier first. The year is pinned explicitly rather than taken from the current date. The hook can also reformat existing headers and add these notices alongside existing metadata; review the result and keep externally owned sources in the excluded directories. Repeated runs on the resulting headers do not add duplicates.
 
@@ -151,12 +151,16 @@ The tests run copies of the script against local Git repositories in system temp
 
 The [Workspace CI workflow](.github/workflows/ci.yml) runs on pull requests, pushes to `main`, and manual dispatches:
 
-- **Pre-commit:** runs the existing hooks on Linux, using `requirements-dev.txt` for contributor dependencies.
-- **Bootstrap:** runs the existing offline tests on Linux, Windows, and macOS with Python 3.11 and Git, without third-party Python dependencies.
+- **Fast CI:** pre-commit, workspace configuration and integration-runner checks on Linux.
+- **Fast bootstrap:** existing offline tests on Linux, Windows and macOS with Python 3.11 and Git.
+- **Full CI:** sibling Core and remote fallback scenarios on Ubuntu 24.04 with Lua 5.4, plus portal source assembly.
+- **Workspace integration gate:** requires every applicable check and rejects unexpected skips or cancellation.
 
-Each job checks out only this workspace repository. Bootstrap tests use local Git fixtures in temporary directories and disable network Git protocols; no sibling `opentlv` checkout is required or cloned. The workflow uses read-only repository permissions, does not persist checkout credentials, and does not commit or push hook fixes. A failed check fails its job; review the reported diff and apply any fixes locally.
+Full CI runs for all main pushes, manual runs and significant pull-request changes. Only explicitly classified editorial-only PRs can skip it. Make **Workspace integration gate** a required check in the branch ruleset; workflow YAML alone does not enforce that repository setting.
 
-Local validation uses the pre-commit and bootstrap commands above. Report local results separately from GitHub Actions results; declaring a platform in the workflow does not mean it has already passed there.
+Fast bootstrap uses local fixtures with network Git protocols disabled. Full CI uses disposable checkouts selected by [integration.json](integration.json) and records actual dependency revisions. The workflow uses read-only repository permissions, does not persist checkout credentials, and does not commit or push fixes.
+
+See [Workspace integration quality gates](docs/integration.md) for local commands, test ownership, supported configurations, selection rules and performance evidence. Keep component test suites in their repositories. Report local results separately from GitHub Actions results; declaring a platform in the workflow does not mean it has already passed there.
 
 ## Development Independence
 

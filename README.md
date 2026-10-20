@@ -134,6 +134,12 @@ For changes to this workspace repository, see [CONTRIBUTING.md](CONTRIBUTING.md)
 
 Optional contributor tooling is described in [Pre-commit Checks](CONTRIBUTING.md#pre-commit-checks). Bootstrap itself still requires only Python and Git.
 
+## Workspace Integration CI
+
+Fast CI validates workspace configuration, repository references and offline bootstrap behavior. Full CI builds representative CLI and Lua consumers against a selected sibling Core and against their own remote Core pins, and checks portal source assembly. Component test suites remain with their owners.
+
+[integration.json](integration.json) pins the repository combination used by CI; it does not select component release versions or change bootstrap behavior. See [integration quality gates](docs/integration.md) for supported configurations, local commands, revision evidence, the required merge check and performance measurements.
+
 ## Development Principles
 
 - Use native VS Code multi-root workspace functionality.

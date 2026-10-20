@@ -27,6 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Add Fast CI and conditional Full CI for pinned sibling and remote repository integration, CLI/Lua and documentation smoke checks, dependency provenance, timing evidence and a combined integration gate. (#31)
 - Add `opentlv-lua` to the VS Code workspace, HTTPS/SSH bootstrap cloning, and setup documentation with the sibling Core layout. (#28)
 - Add `opentlv-cli` to the VS Code workspace, HTTPS/SSH bootstrap cloning, and setup documentation for standalone CLI development. (OpenTLV/opentlv-cli#1)
 - OpenTLV documentation folder (`../opentlv-docs`) in the workspace, with existing folders and settings preserved. (#23)

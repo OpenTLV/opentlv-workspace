@@ -20,6 +20,9 @@ path = [
     "README.md",
     "SECURITY.md",
     "opentlv.code-workspace",
+    "integration.json",
+    "docs/integration.md",
+    "docs/ci-baseline.json",
     "requirements-dev.txt",
 ]
 precedence = "aggregate"
