@@ -16,6 +16,11 @@
       "repository": "https://github.com/OpenTLV/opentlv-lua.git",
       "revision": "c463066ca24f524d3ae9c7dff949796629367d03"
     },
+    "python": {
+      "directory": "opentlv-python",
+      "repository": "https://github.com/OpenTLV/opentlv-python.git",
+      "revision": "9d612e8ea4b43f3b7dc56b7bc5cc506356be2cbd"
+    },
     "docs": {
       "directory": "opentlv-docs",
       "repository": "https://github.com/OpenTLV/opentlv-docs.git",

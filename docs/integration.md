@@ -30,12 +30,26 @@ configuration and setup behavior; it does not revalidate component compatibility
 
 ## Full CI and supported combinations
 
-[integration.json](../integration.json) identifies the exact Core, CLI, Lua and
+[integration.json](../integration.json) identifies the exact Core, CLI, Lua, Python and
 portal revisions selected for integration CI. These are test inputs, not an
 ecosystem release version or a replacement for component dependency manifests.
 Update pins deliberately and validate both scenarios together.
 The initial Core, CLI and Lua pins match the source revisions declared by the
 pinned portal. The manifest intentionally does not follow moving main branches.
+
+Python is pinned to initial scaffold `9d612e8ea4b43f3b7dc56b7bc5cc506356be2cbd`.
+Both Full scenarios check out this revision and record its repository, configured
+and actual commit, and dirty state. The Full and Release gates reject missing,
+foreign, changed or dirty Python sources just like other manifest repositories.
+The sibling layout exposes Core at `../opentlv` from the Python checkout.
+The remote scenario has no sibling Core checkout.
+
+This is checkout coverage only: Python has no standalone build contract at this
+pin, so Full does not build or import it, report a Python Core dependency, or add
+it to portal source assembly. Python build/import smoke and effective Core
+selection verification require the Python repository's standalone build contract
+first. Add that coverage with a reviewed pin update once the contract exists;
+keep API, packaging and behavioral tests in the component repository.
 
 | Scenario | CLI and Lua Core selection | Documentation sources |
 | --- | --- | --- |
@@ -131,8 +145,9 @@ component releases, dependency-contract changes or portal source-pin updates.
 This is a maintainer process; no scheduled updater or downstream CI dispatch
 is installed.
 
-1. Select candidate Core, CLI, Lua and portal revisions after reviewing their
-   component-owned quality-gate results. Resolve refs to full commit SHAs once
+1. Select candidate Core, CLI, Lua, Python and portal revisions after reviewing their
+   component-owned quality-gate results where available. For Python, explicitly
+   record whether coverage is still limited to checkout identity. Resolve refs to full commit SHAs once
    and record the old/new revisions and upstream evidence in an update PR.
 2. Check the candidate portal's source manifest and navigation against the
    proposed siblings. Its remote documentation pins and the consumers' remote
@@ -209,6 +224,8 @@ python -B scripts/integration.py full --mode sibling --source-root .. --work-dir
 
 This explicit mode accepts different HEADs and local changes, records configured
 and actual revisions plus dirty state, and marks the report `local_development`.
+All manifest repositories, including `opentlv-python`, must exist under
+`--source-root`; bootstrap can create missing siblings.
 It never fetches, switches branches or writes build output into those siblings.
 Portal output is created from a disposable copy. A local-development report is
 not evidence that the pinned CI combination passed.

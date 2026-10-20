@@ -9,8 +9,9 @@ from pathlib import Path
 import subprocess
 import sys
 import tempfile
+from types import SimpleNamespace
 import unittest
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
@@ -49,11 +50,62 @@ class ContractTests(unittest.TestCase):
                     integration.load_manifest(self.root)
 
     def test_reject_missing_component(self):
+        original = integration.load_manifest(self.root)
+        for key in original["repositories"]:
+            manifest = copy.deepcopy(original)
+            del manifest["repositories"][key]
+            self.write("integration.json", manifest)
+            with self.subTest(key=key), self.assertRaises(ValueError):
+                integration.validate_workspace(self.root)
+
+    def test_python_core_is_a_sibling_without_shared_build_settings(self):
+        config = json.loads((self.root / "opentlv.code-workspace").read_text(encoding="utf-8"))
+        roots = {item["name"]: (self.root / item["path"]).resolve()
+                 for item in config["folders"]}
+        self.assertEqual(roots["opentlv-python"].parent / "opentlv", roots["opentlv"])
+        self.assertEqual(config["settings"], {})
+
+    def test_reject_python_checkout_configuration_drift(self):
+        original = integration.load_manifest(self.root)
+        for field, value in (("revision", "main"), ("directory", "../../opentlv-python"),
+                             ("repository", "https://github.com/other/opentlv-python.git")):
+            manifest = copy.deepcopy(original)
+            manifest["repositories"]["python"][field] = value
+            self.write("integration.json", manifest)
+            with self.subTest(field=field), self.assertRaises(ValueError):
+                integration.validate_workspace(self.root)
+
+    def test_full_records_python_checkout_without_claiming_runtime_coverage(self):
         manifest = integration.load_manifest(self.root)
-        del manifest["repositories"]["lua"]
-        self.write("integration.json", manifest)
-        with self.assertRaises(ValueError):
-            integration.validate_workspace(self.root)
+        by_directory = {item["directory"]: item for item in manifest["repositories"].values()}
+        for mode in ("sibling", "remote"):
+            with self.subTest(mode=mode):
+                args = SimpleNamespace(work_dir=self.root / mode, source_root=None,
+                                       mode=mode, lua="lua5.4")
+                runner = Mock()
+                runner.report = {"sources": {}, "checks": {}}
+                runner.checkout.side_effect = lambda item, parent: parent / item["directory"]
+                runner.identity.side_effect = lambda path: {
+                    "repository": by_directory[path.name]["repository"],
+                    "commit": by_directory[path.name]["revision"], "dirty": False,
+                }
+
+                def run(command, **kwargs):
+                    if command[0] == sys.executable:
+                        output = command[command.index("--output") + 1]
+                        output.write_text('{"sources": []}', encoding="utf-8")
+                    return "tool version"
+
+                runner.run.side_effect = run
+                with patch.object(integration, "component_smoke") as smoke:
+                    integration.full(args, runner, manifest)
+                self.assertEqual([call.args[1] for call in smoke.call_args_list], ["cli", "lua"])
+                expected = set(manifest["repositories"]) - ({"core"} if mode == "remote" else set())
+                self.assertEqual(set(runner.report["sources"]), expected)
+                self.assertEqual(runner.report["sources"]["python"]["commit"],
+                                 manifest["repositories"]["python"]["revision"])
+                self.assertNotIn("python", runner.report["checks"])
+                self.assertNotIn("--python", runner.run.call_args.args[0])
 
     def test_reject_duplicate_root_absolute_path_and_build_settings(self):
         original = json.loads((self.root / "opentlv.code-workspace").read_text(encoding="utf-8"))

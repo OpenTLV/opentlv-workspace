@@ -119,7 +119,7 @@ def validate_evidence(evidence, locked):
     require(set(evidence["reports"]) == {"sibling", "remote"}, "Missing integration scenario")
     for mode, report in evidence["reports"].items():
         validate_report(report, mode, locked)
-    for key in ("cli", "lua", "docs"):
+    for key in set(locked["integration"]["repositories"]) - {"core"}:
         require(evidence["reports"]["sibling"]["sources"][key]
                 == evidence["reports"]["remote"]["sources"][key]
                 or all(evidence["reports"]["sibling"]["sources"][key][field]
