@@ -1,0 +1,90 @@
+# SPDX-License-Identifier: MIT
+# Copyright (c) 2026 Marek Cingel
+
+name: Workspace PR
+on:
+  pull_request:
+    branches: [main]
+permissions:
+  contents: read
+concurrency:
+  group: workspace-pr-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  fast:
+    name: PR contracts
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: '3.11'
+          cache: pip
+      - run: python -m pip install -r requirements-dev.txt
+      - uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: ~/.cache/pre-commit
+          key: pre-commit-${{ runner.os }}-python311-${{ hashFiles('.pre-commit-config.yaml', 'requirements-dev.txt') }}
+      - run: |
+          python -m pre_commit validate-config
+          python -B scripts/integration.py fast
+          python -B -m unittest discover -s tests -p test_integration.py -v
+          python -B -m unittest discover -s tests -p test_quality.py -v
+          python -m pre_commit run --all-files --show-diff-on-failure
+  bootstrap:
+    name: Bootstrap (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: '3.11'
+      - run: python -B tests/test_bootstrap.py -v
+  gate:
+    name: Workspace integration gate
+    if: always()
+    needs: [fast, bootstrap]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - name: Require PR checks
+        env:
+          FAST: ${{ needs.fast.result }}
+          BOOTSTRAP: ${{ needs.bootstrap.result }}
+        run: |
+          test "$FAST" = success
+          test "$BOOTSTRAP" = success
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        if: always()
+        with:
+          persist-credentials: false
+      - name: Record PR job timings
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TIMING_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: >-
+          python -B scripts/ci_timings.py --current
+          --job 'PR contracts' --job 'Bootstrap (ubuntu-latest)'
+          --job 'Bootstrap (windows-latest)' --job 'Bootstrap (macos-latest)'
+          --output build/timings/pr.json
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: always()
+        with:
+          name: workspace-pr-timings-${{ github.run_attempt }}
+          path: build/timings/pr.json
+          if-no-files-found: error

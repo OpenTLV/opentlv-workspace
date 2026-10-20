@@ -1,0 +1,145 @@
+# SPDX-License-Identifier: MIT
+# Copyright (c) 2026 Marek Cingel
+
+name: Workspace Release
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Workspace snapshot tag (vMAJOR.MINOR.PATCH)'
+        type: string
+        required: true
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: workspace-release
+  cancel-in-progress: false
+
+jobs:
+  prepare:
+    name: Release preflight
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Validate version, changelog and locked revisions
+        env:
+          RELEASE_TAG: ${{ inputs.tag }}
+          GH_TOKEN: ${{ github.token }}
+        run: python -B scripts/release.py prepare --tag "$RELEASE_TAG" --output build/release-request.json
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: workspace-release-request-${{ github.run_attempt }}
+          path: build/release-request.json
+          if-no-files-found: error
+  full:
+    name: Full
+    needs: [prepare]
+    uses: ./.github/workflows/workspace-full.yml
+  assemble:
+    name: Assemble snapshot
+    needs: [prepare, full]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      actions: read
+      id-token: write
+      attestations: write
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Download this attempt's verified evidence
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN: ${{ github.run_id }}
+          ATTEMPT: ${{ github.run_attempt }}
+        run: |
+          gh run download "$RUN" --name "workspace-release-request-$ATTEMPT" --dir build/input
+          gh run download "$RUN" --name "workspace-full-evidence-$ATTEMPT" --dir build/input
+      - name: Verify Full CI and assemble checksummed snapshot
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python -B scripts/release.py assemble --input build/input --output build/release
+      - name: Attest snapshot, manifest, evidence and checksums
+        uses: actions/attest-build-provenance@977bb373ede98d70efdf65b84cb5f73e068dcc2a # v3
+        with:
+          subject-path: build/release/*
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: workspace-release-payload-${{ github.run_attempt }}
+          path: build/release/*
+          if-no-files-found: error
+  publish:
+    name: Publish verified snapshot
+    needs: [prepare, full, assemble]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      actions: read
+      attestations: read
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Download this attempt's payload
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN: ${{ github.run_id }}
+          ATTEMPT: ${{ github.run_attempt }}
+        run: gh run download "$RUN" --name "workspace-release-payload-$ATTEMPT" --dir build/release
+      - name: Verify provenance before creating tag and release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ inputs.tag }}
+        run: python -B scripts/release.py publish --tag "$RELEASE_TAG" --input build/release
+  gate:
+    name: Workspace release gate
+    if: always()
+    needs: [prepare, full, assemble, publish]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Require release checks
+        env:
+          PREPARE: ${{ needs.prepare.result }}
+          FULL: ${{ needs.full.result }}
+          ASSEMBLE: ${{ needs.assemble.result }}
+          PUBLISH: ${{ needs.publish.result }}
+        run: |
+          test "$PREPARE" = success
+          test "$FULL" = success
+          test "$ASSEMBLE" = success
+          test "$PUBLISH" = success
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        if: always()
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Record Release job timings
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: >-
+          python -B scripts/ci_timings.py --current
+          --job 'Release preflight' --job 'Full / Lock combination'
+          --job 'Full / Integration (sibling)' --job 'Full / Integration (remote)'
+          --job 'Full / Workspace full gate' --job 'Assemble snapshot'
+          --job 'Publish verified snapshot' --output build/timings/release.json
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: always()
+        with:
+          name: workspace-release-timings-${{ github.run_attempt }}
+          path: build/timings/release.json
+          if-no-files-found: error

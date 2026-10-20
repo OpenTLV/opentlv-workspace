@@ -149,16 +149,18 @@ The tests run copies of the script against local Git repositories in system temp
 
 ## Continuous Integration
 
-The [Workspace CI workflow](.github/workflows/ci.yml) runs on pull requests, pushes to `main`, and manual dispatches:
+Workspace CI has four separate entry points:
 
-- **Fast CI:** pre-commit, workspace configuration and integration-runner checks on Linux.
-- **Fast bootstrap:** existing offline tests on Linux, Windows and macOS with Python 3.11 and Git.
-- **Full CI:** sibling Core and remote fallback scenarios on Ubuntu 24.04 with Lua 5.4, plus portal source assembly.
-- **Workspace integration gate:** requires every applicable check and rejects unexpected skips or cancellation.
+- [PR](.github/workflows/workspace-pr.yml): pre-commit, configuration, manifest and orchestration regressions, plus offline bootstrap on Linux, Windows and macOS.
+- [Main](.github/workflows/workspace-main.yml): configuration and offline bootstrap smoke on Linux, without component downloads or builds.
+- [Full](.github/workflows/workspace-full.yml): manual or Release Gate invocation; sibling and remote integration on Ubuntu 24.04 with Lua 5.4 and portal assembly/navigation.
+- [Release](.github/workflows/workspace-release.yml): manual tag input; same-attempt Full evidence, checksums and attestations before publishing a verified workspace snapshot.
 
-Full CI runs for all main pushes, manual runs and significant pull-request changes. Only explicitly classified editorial-only PRs can skip it. Make **Workspace integration gate** a required check in the branch ruleset; workflow YAML alone does not enforce that repository setting.
+Each workflow has an aggregate gate rejecting failed, cancelled, missing or skipped dependencies. Make the PR check **Workspace integration gate** required in the branch ruleset; YAML alone does not enforce that setting. PR and Main never invoke Full automatically.
 
-Fast bootstrap uses local fixtures with network Git protocols disabled. Full CI uses disposable checkouts selected by [integration.json](integration.json) and records actual dependency revisions. The workflow uses read-only repository permissions, does not persist checkout credentials, and does not commit or push fixes.
+Workspace maintainers review integration pins at least monthly and after relevant component releases or contract changes. Follow the [manifest update process](docs/integration.md#maintaining-the-integration-manifest): propose exact candidate SHAs, attach manual Full evidence to the update PR, and track incompatible candidates with their component owners.
+
+Bootstrap uses local fixtures with network Git protocols disabled. Full CI uses disposable checkouts selected by [integration.json](integration.json) and records actual dependency revisions. Validation jobs have read-only repository permissions. Release grants attestation permissions only to assembly and contents-write only to publication. Checkouts never persist credentials.
 
 See [Workspace integration quality gates](docs/integration.md) for local commands, test ownership, supported configurations, selection rules and performance evidence. Keep component test suites in their repositories. Report local results separately from GitHub Actions results; declaring a platform in the workflow does not mean it has already passed there.
 

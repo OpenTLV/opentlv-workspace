@@ -4,9 +4,9 @@ The workspace validates the development environment and the integration of
 independently maintained repositories. It remains optional for building any
 component. Opening the editor does not configure or build anything.
 
-## Fast CI
+## Pull Request CI
 
-Every pull request, push to `main`, and manual run checks:
+[workspace-pr.yml](../.github/workflows/workspace-pr.yml) targets PRs into main and checks:
 
 - Pre-commit configuration, formatting, licensing and syntax on Linux.
 - Workspace roots, repository URLs, immutable integration revisions, bootstrap
@@ -18,6 +18,15 @@ These checks do not build components. The workspace file currently uses strict
 JSON, a subset of VS Code JSONC. Comments require updating both the validator and
 the bootstrap test parser. Shared settings are intentionally empty; adding build
 settings requires defining and testing their integration contract.
+
+## Main CI
+
+[workspace-main.yml](../.github/workflows/workspace-main.yml) handles pushes to
+`main` with **Main smoke** and the aggregate gate. Main smoke
+validates workspace configuration and runs offline bootstrap tests on Linux
+with Python and Git. It installs no contributor dependencies, clones no
+components and performs no native builds. It checks the merged workspace's
+configuration and setup behavior; it does not revalidate component compatibility.
 
 ## Full CI and supported combinations
 
@@ -60,27 +69,108 @@ documentation smoke and is not the supported pinned baseline. Fix navigation
 in the portal before selecting that newer combination; do not relax the
 workspace gate to accept it.
 
-Full CI runs after Fast CI on every main push and manual dispatch. On pull
-requests it is required by default, including changes to scripts, tests,
-workflows, dependency pins, README, CONTRIBUTING and unknown paths. Only an
-explicit list of editorial files in `scripts/integration.py` can skip it.
-An empty change set also requires Full CI.
+[workspace-full.yml](../.github/workflows/workspace-full.yml) runs only through
+manual dispatch or a reusable call from Release Gate. PR and Main workflows do
+not trigger Full, regardless of changed paths. Full locks the workspace commit
+and manifest, runs both scenarios and validates both reports before its gate
+can pass. Standalone Full can run on a candidate branch.
+
+## Release Gate
+
+[workspace-release.yml](../.github/workflows/workspace-release.yml) is manually
+dispatched from main with one input: `tag`, in canonical `vMAJOR.MINOR.PATCH`
+format. A workspace version identifies a verified integration snapshot.
+It does not synchronize component versions or publish component binaries.
+
+The gate:
+
+1. Requires the exact dispatch commit and workflow revision, a clean checkout
+   on main, an absent tag/release and a dated, nonempty closed changelog section
+   for the requested version. An optional Unreleased section must be empty.
+2. Locks the bytes of `integration.json` and all four repository revisions.
+3. Calls Full locally in the same workflow run and attempt, on that exact SHA.
+4. Requires successful preflight and both Full scenarios, including the Full
+   aggregate, with matching source, manifest, run, attempt and workflow identity.
+5. Archives tracked workspace files at that commit and creates
+   `release-manifest.json`, `integration-evidence.json` and `SHA256SUMS`.
+   The manifest records every selected repository revision; the evidence
+   records effective remote dependencies and portal source revisions.
+6. Creates GitHub Artifact Attestations for all four assets in an assembly job
+   with no repository write permission.
+7. In a separate publication job, recomputes checksums, compares the archive to
+   the exact committed tree, revalidates all evidence and same-attempt job
+   results, and cryptographically verifies every asset's provenance.
+   Verification binds the signer workflow and source commit and checks the
+   certificate's run/attempt identity. See
+   [GitHub CLI attestation verification](https://cli.github.com/manual/gh_attestation_verify).
+8. Creates the workspace tag with a create-only API request, then publishes the
+   verified snapshot assets in a GitHub Release.
+
+The output tar contains workspace sources and its locked integration manifest,
+not vendored component repositories or component binaries. Component source
+identities remain reproducible from the manifest and report.
+No downstream workflow is dispatched. Pins cannot change during verification.
+A reused report from another run or attempt, including the same commit, fails.
+
+Use **Re-run all jobs** for a retry before publication: rerunning only failed
+jobs cannot reuse artifacts from an earlier attempt. Existing tags/releases
+are never overwritten. If publication fails after tag creation, the verified
+tag remains; investigate and recover deliberately rather than bypassing the
+gate or force-moving it.
+
+The implementation does not authorize a release from the current open
+changelog. Actual tag creation/publication can wait for the next planned
+Workspace release. Hosted OIDC, attestation and publication acceptance remain
+unverified until that release; local mocked regressions are not hosted evidence.
+
+## Maintaining the integration manifest
+
+Workspace maintainers own the tested combination in `integration.json`.
+Review its distance from upstream development at least monthly, and after
+component releases, dependency-contract changes or portal source-pin updates.
+This is a maintainer process; no scheduled updater or downstream CI dispatch
+is installed.
+
+1. Select candidate Core, CLI, Lua and portal revisions after reviewing their
+   component-owned quality-gate results. Resolve refs to full commit SHAs once
+   and record the old/new revisions and upstream evidence in an update PR.
+2. Check the candidate portal's source manifest and navigation against the
+   proposed siblings. Its remote documentation pins and the consumers' remote
+   Core pins may differ from the sibling Core; document those differences.
+3. Update `integration.json` in a dedicated workspace PR. Changes to this file
+   require a manual Full CI run on the candidate branch and both successful
+   scenario reports before maintainer approval. This is a review policy;
+   PR CI does not launch or enforce that manual run.
+4. Review both reports for the exact candidate source commits, effective Core
+   dependencies and portal source commits. Link the successful hosted run for
+   the PR revision. A successful run of the old baseline is not candidate
+   evidence.
+5. If integration fails, keep the last validated pins and track the failure in
+   the owning component's issue tracker. Link that issue and the failed run in
+   the update PR, name the follow-up owner and next review date, and retry after
+   the component fix merges. Do not silently drop a component or relax checks.
+6. After merge, retain the update PR and its validation evidence as the pin
+   history. Main smoke checks the merged workspace setup; it does not replace
+   the pre-merge compatibility evidence.
+
+A green pinned run proves only that selected combination. It says nothing
+about newer upstream heads. When a monthly review retains the same pins,
+record why and the next review date in the tracking issue or update PR so
+compatibility work does not remain indefinitely deferred.
 
 ## Required merge check
 
-Configure the branch ruleset to require **Workspace integration gate**.
-It runs even when dependencies fail or are skipped. It accepts Full CI being
-skipped only when the successful selector explicitly classified the change as
-editorial. Failure, cancellation, missing selector output and unexpected skips
-fail the gate.
-GitHub treats a directly skipped job as successful for required-check purposes;
-the explicit aggregate check avoids relying on that behavior. See
-[GitHub's condition documentation](https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run/control-jobs-with-conditions).
+Configure the branch ruleset to require the PR check **Workspace integration
+gate**. The other entry points expose **Workspace main gate**, **Workspace full
+gate** and **Workspace release gate**. Every aggregate uses `always()` and
+requires all its dependencies to succeed; failed, cancelled, missing and
+unexpectedly skipped checks fail. Full additionally validates the report
+inventory and exact identities.
 
-Repository files define the check but cannot make it required in GitHub branch
-settings. Confirm that setting and a real PR failure before marking merge
-enforcement complete. No downstream workflows are dispatched and no binary
-release pipeline is introduced.
+Repository files define checks but cannot make them required in GitHub branch
+settings. Confirm the required PR check and demonstrate a real failure blocking
+merge before marking enforcement complete. A green PR validates workspace
+contracts, not the complete repository combination.
 
 ## Local validation
 
@@ -90,6 +180,7 @@ Fast checks use the contributor environment described in
 ```sh
 python -B scripts/integration.py fast
 python -B -m unittest discover -s tests -p test_integration.py -v
+python -B -m unittest discover -s tests -p test_quality.py -v
 python -B tests/test_bootstrap.py -v
 python -m pre_commit run --all-files --show-diff-on-failure
 ```
@@ -128,11 +219,13 @@ with the matching DLL import library. The smoke runner uses Ninja on all hosts.
 
 ## Evidence and performance
 
-Each Full CI job uploads a JSON report with source repositories, configured and
+Each Full CI job uploads an attempt-specific JSON report with source repositories, configured and
 actual revisions, dirty state, effective Core dependencies, portal provenance,
 tool versions in the command output, per-command times and overall elapsed time.
 A failed invocation writes a failed report when execution reached the runner.
-Reports are retained for 14 days. Missing reports fail the upload step.
+Raw integration reports are retained for 14 days. Missing reports fail the
+upload step. The Full gate rejects local-development or dirty-workspace reports;
+only clean hosted checkouts of the exact selected revision can authorize release.
 
 The previous workflow built no components and duplicated no component tests.
 Its three-platform bootstrap matrix is retained because Git and filesystem
@@ -152,12 +245,20 @@ python -B scripts/ci_timings.py --run RUN_ID --output build/ci-after.json
 ```
 
 Compare the median elapsed time and summed job time for the same event type and
-scenario, keeping full-integration runs separate from editorial Fast-only PRs.
+scenario, keeping Main smoke, manual Full, PR validation and Release separate.
+For before/after main measurements, report the change in coverage as well:
+the old workflow ran pre-commit and three-platform bootstrap; Main smoke now
+runs configuration and Linux bootstrap checks.
 Elapsed time includes scheduling between jobs; summed job time is not a billing
-estimate. The script queries the jobs from the recorded run attempt and rejects
-failed runs. Use `GH_TOKEN` only if public API rate limits require it.
+estimate. The completed-run collector queries the recorded attempt and rejects failed
+runs. Each workflow also uploads `--current` timings for named predecessor jobs,
+excluding the collecting aggregate itself. That scope is explicitly recorded;
+it is not equivalent to completed-run elapsed time. The collector retries
+missing metadata six times at five-second intervals, never changes attempts,
+and rejects partial or duplicate results. Failed-job timings may be recorded
+without granting a passing gate. Use `GH_TOKEN` for authenticated hosted queries.
 
-The new workflow's hosted timings, hosted integration results and required-check
+The new workflows' hosted timings, hosted integration results and required-check
 enforcement must be recorded after GitHub execution. Local smoke durations are
 not a substitute for a hosted before/after comparison.
 

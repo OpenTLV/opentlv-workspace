@@ -24,7 +24,8 @@ class ContractTests(unittest.TestCase):
         self.root = Path(self.temp.name)
         for name in ("integration.json", "opentlv.code-workspace", "requirements-dev.txt",
                      ".pre-commit-config.yaml", ".gitattributes", "requirements-integration.txt",
-                     ".github/workflows/ci.yml"):
+                     *(f".github/workflows/workspace-{tier}.yml"
+                       for tier in ("pr", "main", "full", "release"))):
             target = self.root / name
             target.parent.mkdir(parents=True, exist_ok=True)
             target.write_bytes((ROOT / name).read_bytes())
@@ -77,81 +78,41 @@ class ContractTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 integration.validate_workspace(self.root)
 
-    def test_full_ci_defaults_to_required(self):
-        for paths in ([], ["scripts/bootstrap.py"], ["integration.json"], ["README.md"],
-                      ["CONTRIBUTING.md"], [".github/workflows/ci.yml"], ["new-file"],
-                      ["CHANGELOG.md", "tests/new_test.py"]):
-            with self.subTest(paths=paths):
-                self.assertTrue(integration.needs_full(paths))
-        self.assertFalse(integration.needs_full(["CHANGELOG.md", "SECURITY.md"]))
-
-    def test_rename_into_editorial_path_still_requires_full_ci(self):
-        def git(*args):
-            return subprocess.check_output(
-                ["git", "-C", str(self.root), "-c", "user.name=Workspace Test",
-                 "-c", "user.email=workspace@example.invalid", "-c", "commit.gpgsign=false",
-                 *args], stderr=subprocess.STDOUT, text=True).strip()
-
-        git("init")
-        (self.root / "integration-script.py").write_text("print('integration')\n", encoding="utf-8")
-        git("add", "integration-script.py")
-        git("commit", "-m", "Initial integration file")
-        before = git("rev-parse", "HEAD")
-        (self.root / "integration-script.py").rename(self.root / "SECURITY.md")
-        git("add", "-A", "--", "integration-script.py", "SECURITY.md")
-        git("commit", "-m", "Move to editorial path")
-        paths = integration.changed_paths(before, git("rev-parse", "HEAD"), self.root)
-        self.assertEqual(set(paths), {"integration-script.py", "SECURITY.md"})
-        self.assertTrue(integration.needs_full(paths))
+    def test_event_selection_keeps_main_light_and_manual_full(self):
+        for event in ("push", "pull_request"):
+            self.assertFalse(integration.select_full(event))
+        for event in ("workflow_dispatch", "workflow_call"):
+            self.assertTrue(integration.select_full(event))
+        with self.assertRaises(ValueError):
+            integration.select_full("unknown")
 
     def test_gate_fails_closed_on_skips_failures_and_cancellation(self):
-        integration.check_gate("success", "success", "true", "success")
-        integration.check_gate("success", "success", "false", "skipped")
-        for fast, bootstrap, required, full in (
-            ("failure", "success", "false", "skipped"),
-            ("success", "cancelled", "false", "skipped"),
-            ("skipped", "success", "true", "success"),
-            ("success", "success", "", "skipped"),
-            ("success", "success", "true", "skipped"),
-            ("success", "success", "true", "cancelled"),
-            ("success", "success", "true", "failure"),
-            ("success", "success", "false", "failure"),
-        ):
-            with self.subTest(fast=fast, bootstrap=bootstrap, required=required, full=full):
-                with self.assertRaises(ValueError):
-                    integration.check_gate(fast, bootstrap, required, full)
+        integration.check_gate(["success", "success"])
+        for results in ([], ["success", ""], ["success", "skipped"],
+                        ["failure", "success"], ["success", "cancelled"]):
+            with self.assertRaises(ValueError):
+                integration.check_gate(results)
 
     def test_real_workflow_gate_agrees_with_python_policy(self):
-        # The required check deliberately does not execute PR Python code.
-        # Exercise its actual shell, including failure/skip combinations.
+        import os
         import shutil
         import yaml
         if sys.platform == "win32" or not shutil.which("bash"):
-            self.skipTest("Workflow shell is exercised on Linux Fast CI")
-        workflow = yaml.safe_load((ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8"))
-        script = workflow["jobs"]["integration-gate"]["steps"][0]["run"]
-        import os
-        for fast, bootstrap, required, full in (
-            ("success", "success", "true", "success"),
-            ("success", "success", "false", "skipped"),
-            ("failure", "success", "false", "skipped"),
-            ("success", "cancelled", "true", "success"),
-            ("success", "success", "true", "skipped"),
-            ("success", "success", "", "skipped"),
-            ("success", "success", "true", "failure"),
-            ("success", "success", "true", "cancelled"),
-        ):
-            with self.subTest(fast=fast, bootstrap=bootstrap, required=required, full=full):
-                env = dict(os.environ, FAST=fast, BOOTSTRAP=bootstrap,
-                           FULL_REQUIRED=required, FULL=full)
-                result = subprocess.run(["bash", "-e", "-c", script], env=env,
-                                        capture_output=True)
-                try:
-                    integration.check_gate(fast, bootstrap, required, full)
-                    expected = 0
-                except ValueError:
-                    expected = 1
-                self.assertEqual(result.returncode, expected)
+            self.skipTest("Workflow shell is exercised on Linux PR CI")
+        for tier in ("pr", "main", "full", "release"):
+            workflow = yaml.safe_load(
+                (ROOT / f".github/workflows/workspace-{tier}.yml").read_text(encoding="utf-8"))
+            gate = workflow["jobs"]["gate"]
+            self.assertEqual(gate["if"], "always()")
+            step = gate["steps"][0]
+            passing = dict.fromkeys(step["env"], "success")
+            cases = [passing] + [dict(passing, **{key: value})
+                                 for key in passing for value in ("failure", "cancelled", "skipped", "")]
+            for env in cases:
+                with self.subTest(tier=tier, env=env):
+                    result = subprocess.run(["bash", "-e", "-c", step["run"]],
+                                            env=dict(os.environ, **env), capture_output=True)
+                    self.assertEqual(result.returncode, 0 if env == passing else 1)
 
     def test_source_and_artifact_pins_must_agree(self):
         source = self.root / "cli"

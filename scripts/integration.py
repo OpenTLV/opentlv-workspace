@@ -20,11 +20,6 @@ ROOT = Path(__file__).resolve().parents[1]
 SHA = re.compile(r"[0-9a-f]{40}")
 COMPONENTS = {"core": "opentlv", "cli": "opentlv-cli",
               "lua": "opentlv-lua", "docs": "opentlv-docs"}
-# Unknown paths require Full CI. README/CONTRIBUTING describe integration contracts.
-EDITORIAL = {"CHANGELOG.md", "CODE_OF_CONDUCT.md", "LICENSE", "SECURITY.md",
-             ".github/PULL_REQUEST_TEMPLATE.md",
-             ".github/ISSUE_TEMPLATE/bug_report.yml",
-             ".github/ISSUE_TEMPLATE/chore.yml", ".github/ISSUE_TEMPLATE/config.yml"}
 
 
 def require(condition, message):
@@ -73,29 +68,22 @@ def validate_workspace(root=ROOT):
                 == bootstrap.repository_identity(repo.https_url),
                 f"Bootstrap transports disagree for {repo.directory}")
     for path in ("requirements-dev.txt", ".pre-commit-config.yaml", ".gitattributes",
-                 "requirements-integration.txt", ".github/workflows/ci.yml"):
+                 "requirements-integration.txt", *(
+                     f".github/workflows/workspace-{tier}.yml"
+                     for tier in ("pr", "main", "full", "release"))):
         require((root / path).is_file(), f"Missing tooling configuration: {path}")
     return data
 
 
-def needs_full(paths):
-    return not paths or any(path not in EDITORIAL for path in paths)
+def select_full(event):
+    require(event in ("pull_request", "push", "workflow_dispatch", "workflow_call"),
+            "Unsupported CI event")
+    return event in ("workflow_dispatch", "workflow_call")
 
 
-def changed_paths(base, head, root=ROOT):
-    require(SHA.fullmatch(base) and SHA.fullmatch(head), "Expected exact Git SHAs")
-    # Treat renames as a deletion plus an addition, so an integration file moved
-    # into an editorial path cannot hide the integration deletion.
-    result = subprocess.run(["git", "diff", "--no-renames", "--name-only", "-z", base, head],
-                            cwd=root, check=True, capture_output=True)
-    return result.stdout.decode("utf-8").rstrip("\0").split("\0") if result.stdout else []
-
-
-def check_gate(fast, bootstrap_result, full_required, full_result):
-    require(fast == "success" and bootstrap_result == "success", "Fast CI did not pass")
-    require(full_required in ("true", "false"), "Missing integration selection result")
-    expected = "success" if full_required == "true" else "skipped"
-    require(full_result == expected, f"Full CI must be {expected}, got {full_result}")
+def check_gate(results):
+    require(bool(results) and all(result == "success" for result in results),
+            "Required checks are missing, failed, cancelled or skipped")
 
 
 class Runner:
@@ -226,6 +214,7 @@ def component_smoke(runner, key, source, core, args, env):
                               'assert(type(m.version())=="string"); print(_VERSION); print(m.version())'],
                              env=lua_env)
         runner.report["lua_version"] = version
+    runner.report["checks"][key] = "passed"
 
 
 def full(args, runner, manifest):
@@ -265,6 +254,7 @@ def full(args, runner, manifest):
         docs_command += ["--core", sources["core"]]
     runner.run(docs_command, env=env)
     runner.report["documentation"] = json.loads(docs_report.read_text(encoding="utf-8"))
+    runner.report["checks"]["documentation"] = "passed"
 
 
 def main():
@@ -272,13 +262,10 @@ def main():
     sub = parser.add_subparsers(dest="command", required=True)
     sub.add_parser("fast")
     plan = sub.add_parser("plan")
-    plan.add_argument("--base")
-    plan.add_argument("--head")
+    plan.add_argument("--event", choices=("pull_request", "push", "workflow_dispatch", "workflow_call"),
+                      default="workflow_dispatch")
     gate = sub.add_parser("gate")
-    gate.add_argument("--fast", required=True)
-    gate.add_argument("--bootstrap", required=True)
-    gate.add_argument("--full-required", required=True)
-    gate.add_argument("--full-result", required=True)
+    gate.add_argument("--result", action="append", required=True)
     integration = sub.add_parser("full")
     integration.add_argument("--mode", choices=("sibling", "remote"), required=True)
     integration.add_argument("--work-dir", type=Path, required=True)
@@ -290,17 +277,14 @@ def main():
     integration.add_argument("--report", type=Path, required=True)
     args = parser.parse_args()
     if args.command == "gate":
-        check_gate(args.fast, args.bootstrap, args.full_required, args.full_result)
+        check_gate(args.result)
         return
     manifest = validate_workspace()
     if args.command == "fast":
         print("Workspace configuration, repository references and tooling configuration are consistent.")
         return
     if args.command == "plan":
-        paths = []
-        if args.base and args.head:
-            paths = changed_paths(args.base, args.head)
-        value = str(needs_full(paths)).lower()
+        value = str(select_full(args.event)).lower()
         print(f"full={value}")
         if os.environ.get("GITHUB_OUTPUT"):
             with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as output:
@@ -311,12 +295,18 @@ def main():
         if value is not None:
             setattr(args, name, value.resolve())
     require(args.jobs > 0, "--jobs must be positive")
-    report = {"schema": 1, "status": "failed", "mode": args.mode,
+    report = {"schema": 2, "status": "failed", "mode": args.mode,
               "local_development": bool(args.source_root),
               "manifest_sha256": hashlib.sha256((ROOT / "integration.json").read_bytes()).hexdigest(),
               "workspace_commit": subprocess.check_output(
                   ["git", "-C", str(ROOT), "rev-parse", "HEAD"], text=True).strip(),
-              "sources": {}, "core_dependencies": {}, "steps": []}
+              "execution": {key: os.environ.get("GITHUB_" + key.upper(), "")
+                            for key in ("repository", "run_id", "run_attempt", "workflow_ref",
+                                        "workflow_sha", "event_name", "sha", "ref")},
+              "workspace_dirty": bool(subprocess.check_output(
+                  ["git", "-C", str(ROOT), "status", "--porcelain", "--untracked-files=all"],
+                  text=True).strip()),
+              "sources": {}, "core_dependencies": {}, "steps": [], "checks": {}}
     started = time.monotonic()
     try:
         full(args, Runner(report), manifest)
