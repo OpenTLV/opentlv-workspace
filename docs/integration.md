@@ -44,12 +44,15 @@ foreign, changed or dirty Python sources just like other manifest repositories.
 The sibling layout exposes Core at `../opentlv` from the Python checkout.
 The remote scenario has no sibling Core checkout.
 
-This is checkout coverage only: Python has no standalone build contract at this
-pin, so Full does not build or import it, report a Python Core dependency, or add
-it to portal source assembly. Python build/import smoke and effective Core
-selection verification require the Python repository's standalone build contract
-first. Add that coverage with a reviewed pin update once the contract exists;
-keep API, packaging and behavioral tests in the component repository.
+This is checkout coverage only: the old Python pin has no standalone build
+configuration, so Full does not build or import it, report a Python Core
+dependency, or add it to portal source assembly. The
+[current Python development guide](https://github.com/OpenTLV/opentlv-python/blob/main/docs/development/python.md)
+owns its standalone build and Core selection contract. Adding Python build/import
+smoke and effective Core selection verification requires a separate reviewed
+manifest and runner update against that contract. Keep API, packaging and
+behavioral tests in the component repository. Current component status does not
+change the evidence established by the older workspace pins.
 
 | Scenario | CLI and Lua Core selection | Documentation sources |
 | --- | --- | --- |
@@ -101,7 +104,7 @@ The gate:
 1. Requires the exact dispatch commit and workflow revision, a clean checkout
    on main, an absent tag/release and a dated, nonempty closed changelog section
    for the requested version. An optional Unreleased section must be empty.
-2. Locks the bytes of `integration.json` and all four repository revisions.
+2. Locks the bytes of `integration.json` and every repository revision it selects.
 3. Calls Full locally in the same workflow run and attempt, on that exact SHA.
 4. Requires successful preflight and both Full scenarios, including the Full
    aggregate, with matching source, manifest, run, attempt and workflow identity.

@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Correct Python ownership and development links, distinguish current component setup from the older integration pins, and keep component build instructions with their owners. (#35)
 - Point PR CI's pip cache at the contributor requirements file so Python setup succeeds. (#31)
 - Large-file checks now include already committed files, so the size limit is enforced in clean CI checkouts. (#17)
 - Added the missing final newline in `opentlv.code-workspace`. (#15)
