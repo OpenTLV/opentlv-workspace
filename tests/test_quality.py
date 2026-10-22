@@ -36,10 +36,11 @@ def fixture():
             "schema": 2, "status": "passed", "mode": mode, "execution": copy.deepcopy(ctx),
             "local_development": False, "workspace_dirty": False, "workspace_commit": ctx["sha"],
             "manifest_sha256": locked["manifest_sha256"],
-            "checks": dict.fromkeys(("cli", "lua", "documentation"), "passed"),
+            "checks": dict.fromkeys(("cli", "lua", "rust", "documentation"), "passed"),
             "steps": [{"returncode": 0}], "seconds": 1.0,
             "cli_version": "otlv fixture", "lua_version": "Lua fixture",
-            "tools": dict.fromkeys(("git", "cmake", "ninja", "lua"), "fixture"),
+            "rust_output": "Hello, world!",
+            "tools": dict.fromkeys(("git", "cmake", "ninja", "lua", "cargo", "rustc"), "fixture"),
             "sources": {key: {"repository": item["repository"], "commit": item["revision"],
                               "configured_revision": item["revision"], "dirty": False}
                         for key, item in repos.items() if mode == "sibling" or key != "core"},
@@ -47,7 +48,9 @@ def fixture():
                 key: {"repository": repos["core"]["repository"], "mode": mode,
                       "declared_pin": "c" * 40, "dirty": False,
                       "commit": repos["core"]["revision"] if mode == "sibling" else "c" * 40}
-                for key in ("cli", "lua")},
+                for key in ("cli", "lua")} | {
+                "rust": {"repository": repos["core"]["repository"], "mode": mode,
+                         "declared_pin": "e" * 40, "dirty": False, "commit": "e" * 40}},
             "documentation": {"sources": [
                 {"id": key, "repository": repos[key]["repository"], "included": True, "dirty": False,
                  "commit": repos[key]["revision"], "revision": repos[key]["revision"]}
@@ -118,6 +121,10 @@ class EvidenceTests(unittest.TestCase):
             ("core_dependencies", "cli", "commit", "d" * 40),
             ("core_dependencies", "lua", "declared_pin", "main"),
             ("core_dependencies", "lua", "mode", "remote"),
+            ("core_dependencies", "rust", "commit",
+             quality.load_manifest()["repositories"]["core"]["revision"]),
+            ("core_dependencies", "rust", "dirty", True),
+            ("core_dependencies", "rust", "repository", "https://github.com/other/opentlv.git"),
         ):
             report = copy.deepcopy(self.evidence["reports"]["sibling"])
             report[section][key][field] = value
@@ -133,11 +140,32 @@ class EvidenceTests(unittest.TestCase):
                     quality.validate_report(report, mode, self.locked)
 
     def test_scaffold_runtime_success_is_not_part_of_checkout_coverage(self):
-        for key in ("python", "rust"):
-            report = copy.deepcopy(self.evidence["reports"]["sibling"])
-            report["checks"][key] = "passed"
-            with self.subTest(key=key), self.assertRaises(ValueError):
-                quality.validate_report(report, "sibling", self.locked)
+        report = copy.deepcopy(self.evidence["reports"]["sibling"])
+        report["checks"]["python"] = "passed"
+        with self.assertRaises(ValueError):
+            quality.validate_report(report, "sibling", self.locked)
+
+    def test_rust_smoke_and_core_lock_are_required_in_both_scenarios(self):
+        for mode in ("sibling", "remote"):
+            for change in ("check", "dependency", "output", "tool"):
+                report = copy.deepcopy(self.evidence["reports"][mode])
+                if change == "check":
+                    del report["checks"]["rust"]
+                elif change == "dependency":
+                    del report["core_dependencies"]["rust"]
+                elif change == "output":
+                    report["rust_output"] = " "
+                else:
+                    del report["tools"]["rustc"]
+                with self.subTest(mode=mode, change=change), self.assertRaises(ValueError):
+                    quality.validate_report(report, mode, self.locked)
+
+    def test_scenarios_must_declare_the_same_rust_core_lock(self):
+        evidence = copy.deepcopy(self.evidence)
+        item = evidence["reports"]["remote"]["core_dependencies"]["rust"]
+        item["declared_pin"] = item["commit"] = "f" * 40
+        with self.assertRaises(ValueError):
+            quality.validate_evidence(evidence, self.locked)
 
     def test_missing_dirty_duplicate_or_moving_docs_sources(self):
         for field, value in (("dirty", True), ("included", False), ("commit", "d" * 40),

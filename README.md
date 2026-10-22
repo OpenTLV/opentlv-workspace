@@ -6,7 +6,7 @@ This repository provides the shared editor configuration and workspace documenta
 
 ## Overview
 
-The workspace opens seven repositories: `opentlv-workspace`, `opentlv`, `opentlv-docs`, `opentlv-cli`, `opentlv-lua`, `opentlv-python`, and `opentlv-rust`. Core owns the C core, C++ API and its in-tree bindings. The standalone CLI, Lua and Python repositories own their implementations, tests, packaging and technical documentation. `opentlv-rust` is the destination of the Rust binding migration; until its sources move, the Rust binding remains in Core. The Docs repository owns portal navigation, introductions, assembly and publication; assembling technical sources does not transfer their component ownership.
+The workspace opens seven repositories: `opentlv-workspace`, `opentlv`, `opentlv-docs`, `opentlv-cli`, `opentlv-lua`, `opentlv-python`, and `opentlv-rust`. Core owns the C core, C++ API and its in-tree bindings. The standalone CLI, Lua, Python and Rust repositories own their implementations, tests, packaging and technical documentation. The Docs repository owns portal navigation, introductions, assembly and publication; assembling technical sources does not transfer their component ownership.
 
 The workspace uses native Visual Studio Code functionality to work with multiple repositories in a single editor window.
 
@@ -92,9 +92,9 @@ The roots in `opentlv.code-workspace` use paths relative to the workspace reposi
 | `opentlv-cli` | `../opentlv-cli` | `opentlv-cli` | Standalone CLI, tests and documentation |
 | `opentlv-lua` | `../opentlv-lua` | `opentlv-lua` | Standalone Lua binding, tests, packaging and documentation |
 | `opentlv-python` | `../opentlv-python` | `opentlv-python` | Standalone Python binding, tests, packaging and documentation |
-| `opentlv-rust` | `../opentlv-rust` | `opentlv-rust` | Standalone Rust binding repository; initial scaffold pending migration |
+| `opentlv-rust` | `../opentlv-rust` | `opentlv-rust` | Standalone Rust crates, tests, packaging and documentation |
 
-The [Core repository guide](https://github.com/OpenTLV/opentlv) describes Core and links its technical documentation. Standalone CLI, Lua and Python select Core through their own build systems, and Rust will do the same through its Cargo build; opening sibling checkouts does not select a dependency.
+The [Core repository guide](https://github.com/OpenTLV/opentlv) describes Core and links its technical documentation. Standalone CLI, Lua, Python and Rust select Core through their own build systems; opening sibling checkouts does not select a dependency.
 
 ### Lua and Local Core Development
 
@@ -116,9 +116,9 @@ The older Python revision in the workspace's [integration manifest](integration.
 
 Keep `opentlv-rust` and `opentlv` as sibling checkouts. From `opentlv-rust`, the local Core source is at `../opentlv`; both repositories are visible in the editor. Bootstrap prepares this layout without changing existing checkouts or configuring dependencies.
 
-The Rust revision pinned by this workspace is an initial repository scaffold with no Cargo workspace. Until the sources are migrated, develop and test the Rust binding in the Core checkout as described in the [Core Rust development guide](https://github.com/OpenTLV/opentlv/blob/main/docs/development/rust.md). Adding this workspace root does not move the in-tree binding or change its development workflow.
+Follow the [Rust local workspace guide](https://github.com/OpenTLV/opentlv-rust/blob/main/docs/development/rust.md#local-workspace-development) to build against the sibling Core: it selects the checkout explicitly through the absolute `OPENTLV_CORE_SOURCE` path. That override is for development only; Rust CI and verified builds reject it and use the Core locked in `opentlv-sys/core/core-artifact.json`.
 
-The workspace supplies no Cargo configuration, `[patch]` section, environment variables such as `OPENTLV_LIB_DIR`, or CMake override. Selecting a local Core checkout belongs to the standalone Rust build contract owned by [`opentlv-rust`](https://github.com/OpenTLV/opentlv-rust). Rust must remain buildable through its own Cargo workspace without this workspace or a sibling Core checkout, and Core does not depend on Rust.
+The workspace supplies no Cargo configuration, `[patch]` section, environment variables such as `OPENTLV_CORE_SOURCE` or `OPENTLV_LIB_DIR`, or CMake override. Selecting a local Core checkout belongs to the standalone Rust build contract owned by [`opentlv-rust`](https://github.com/OpenTLV/opentlv-rust). Rust remains buildable through its own Cargo workspace without this workspace or a sibling Core checkout, and Core does not depend on Rust.
 
 ## Development Documentation
 
@@ -128,7 +128,7 @@ Use each owner's documentation for current prerequisites, build commands, suppor
 - [CLI development](https://github.com/OpenTLV/opentlv-cli/blob/main/docs/development.md) and [command guide](https://github.com/OpenTLV/opentlv-cli/blob/main/docs/README.md): standalone CLI setup and usage.
 - [Lua development](https://github.com/OpenTLV/opentlv-lua/blob/main/docs/development.md), [API](https://github.com/OpenTLV/opentlv-lua/blob/main/docs/api.md) and [testing](https://github.com/OpenTLV/opentlv-lua/blob/main/docs/testing.md): standalone Lua setup, usage and CI.
 - [Python development](https://github.com/OpenTLV/opentlv-python/blob/main/docs/development/python.md), [usage](https://github.com/OpenTLV/opentlv-python/blob/main/docs/guides/python.md) and [quality gates](https://github.com/OpenTLV/opentlv-python/blob/main/docs/quality-gates.md): standalone Python setup, usage and CI.
-- [Rust development](https://github.com/OpenTLV/opentlv/blob/main/docs/development/rust.md) and [usage](https://github.com/OpenTLV/opentlv/blob/main/docs/guides/rust.md): Rust binding in Core until its migration to [`opentlv-rust`](https://github.com/OpenTLV/opentlv-rust).
+- [Rust development](https://github.com/OpenTLV/opentlv-rust/blob/main/docs/development/rust.md), [usage](https://github.com/OpenTLV/opentlv-rust/blob/main/docs/guides/rust.md) and [quality gates](https://github.com/OpenTLV/opentlv-rust/blob/main/docs/quality-gates.md): standalone Rust setup, usage and CI.
 - [Docs repository](https://github.com/OpenTLV/opentlv-docs): portal builds, tests and publication.
 
 For changes to this workspace repository, see [CONTRIBUTING.md](CONTRIBUTING.md).
@@ -137,7 +137,7 @@ Optional contributor tooling is described in [Pre-commit Checks](CONTRIBUTING.md
 
 ## Workspace Integration CI
 
-Four workflows separate PR validation, lightweight Main smoke, manual Full integration and a manual Release Gate. PR checks configuration, formatting, offline bootstrap and orchestration without building components. Main checks configuration and bootstrap on Linux. Full builds CLI and Lua against sibling and remote Core revisions and checks portal assembly/navigation. Python and Rust coverage validates their pinned checkout identities in both scenarios; it does not yet build, import or test them or verify their Core dependency selection. Release reruns Full on the exact dispatch commit before publishing an attested integration snapshot; component releases remain independent.
+Four workflows separate PR validation, lightweight Main smoke, manual Full integration and a manual Release Gate. PR checks configuration, formatting, offline bootstrap and orchestration without building components. Main checks configuration and bootstrap on Linux. Full builds CLI and Lua against sibling and remote Core revisions, builds and runs the Rust quick start against Rust's own locked Core in both scenarios, and checks portal assembly/navigation. Python coverage validates its pinned checkout identity in both scenarios; it does not yet build, import or test Python or verify its Core dependency selection. Release reruns Full on the exact dispatch commit before publishing an attested integration snapshot; component releases remain independent.
 
 [integration.json](integration.json) pins the repository combination used by CI; it does not select component release versions or change bootstrap behavior. See [integration quality gates](docs/integration.md) for supported configurations, local commands, revision evidence, the required merge check and performance measurements.
 

@@ -74,13 +74,13 @@ def validate_report(report, mode, locked):
     require(report.get("execution") == locked["execution"], "Stale or foreign integration report")
     require(report.get("workspace_commit") == locked["execution"]["sha"]
             and report.get("manifest_sha256") == locked["manifest_sha256"], "Integration input drift")
-    require(report.get("checks") == dict.fromkeys(("cli", "lua", "documentation"), "passed"),
+    require(report.get("checks") == dict.fromkeys(("cli", "lua", "rust", "documentation"), "passed"),
             "Incomplete smoke evidence")
     require(report.get("steps") and all(step.get("returncode") == 0 for step in report["steps"]),
             "Missing or unsuccessful commands")
     require(all(isinstance(report.get(key), str) and report[key].strip()
-                for key in ("cli_version", "lua_version"))
-            and set(report.get("tools", {})) == {"git", "cmake", "ninja", "lua"}
+                for key in ("cli_version", "lua_version", "rust_output"))
+            and set(report.get("tools", {})) == {"git", "cmake", "ninja", "lua", "cargo", "rustc"}
             and all(report["tools"].values()), "Missing runtime or tool evidence")
     require(isinstance(report.get("seconds"), (int, float)) and report["seconds"] > 0,
             "Missing integration timing")
@@ -93,13 +93,15 @@ def validate_report(report, mode, locked):
                 and item["dirty"] is False
                 and repository_identity(item["repository"])
                 == repository_identity(repos[key]["repository"]), f"Wrong {key} source")
-    require(set(report["core_dependencies"]) == {"cli", "lua"}, "Missing Core dependencies")
-    for item in report["core_dependencies"].values():
+    require(set(report["core_dependencies"]) == {"cli", "lua", "rust"}, "Missing Core dependencies")
+    for key, item in report["core_dependencies"].items():
         require(SHA.fullmatch(item["declared_pin"]) and item["dirty"] is False
                 and item["mode"] == mode
                 and repository_identity(item["repository"])
                 == repository_identity(repos["core"]["repository"]), "Invalid Core dependency")
-        require(item["commit"] == (repos["core"]["revision"] if mode == "sibling"
+        # Rust rejects its local Core override in CI, so it uses its lock in both scenarios.
+        sibling = mode == "sibling" and key != "rust"
+        require(item["commit"] == (repos["core"]["revision"] if sibling
                                   else item["declared_pin"]), "Wrong effective Core revision")
     docs = report["documentation"]["sources"]
     require(len(docs) == 3 and {item["id"] for item in docs} == {"core", "cli", "lua"},
@@ -126,7 +128,7 @@ def validate_evidence(evidence, locked):
                        == evidence["reports"]["remote"]["sources"][key][field]
                        for field in ("commit", "repository", "configured_revision", "dirty")),
                 "Scenario sources disagree")
-    for key in ("cli", "lua"):
+    for key in ("cli", "lua", "rust"):
         require(evidence["reports"]["sibling"]["core_dependencies"][key]["declared_pin"]
                 == evidence["reports"]["remote"]["core_dependencies"][key]["declared_pin"],
                 "Scenario dependency declarations disagree")

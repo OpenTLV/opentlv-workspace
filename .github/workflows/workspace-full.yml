@@ -53,9 +53,12 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y ninja-build lua5.4 liblua5.4-dev
           python -m pip install -r requirements-integration.txt
+          # The pinned stable toolchain of opentlv-rust's CI matrix.
+          rustup toolchain install 1.99.1 --profile minimal --no-self-update
       - name: Build and smoke-test pinned combination
         env:
           MODE: ${{ matrix.mode }}
+          RUSTUP_TOOLCHAIN: '1.99.1'
         run: >-
           python -B scripts/integration.py full --mode "$MODE"
           --work-dir "build/$MODE" --report "build/results/$MODE.json"
