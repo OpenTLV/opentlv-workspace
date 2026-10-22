@@ -27,6 +27,10 @@
 		{
 			"path": "../opentlv-rust",
 			"name": "opentlv-rust"
+		},
+		{
+			"path": "../opentlv-go",
+			"name": "opentlv-go"
 		}
 	],
 	"settings": {}
