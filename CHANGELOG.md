@@ -30,6 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Add `opentlv-rust` to the workspace, HTTPS/SSH bootstrap and pinned checkout validation, with documented sibling Core layout and Rust development kept in Core until migration. (#37)
 - Add `opentlv-python` to the workspace, HTTPS/SSH bootstrap and pinned checkout validation, with documented sibling Core layout. (#33)
 - Add pinned sibling and remote repository integration, CLI/Lua and documentation smoke checks, dependency provenance, timing evidence and aggregate quality gates. (#31)
 - Add `opentlv-lua` to the VS Code workspace, HTTPS/SSH bootstrap cloning, and setup documentation with the sibling Core layout. (#28)

@@ -30,8 +30,8 @@ configuration and setup behavior; it does not revalidate component compatibility
 
 ## Full CI and supported combinations
 
-[integration.json](../integration.json) identifies the exact Core, CLI, Lua, Python and
-portal revisions selected for integration CI. These are test inputs, not an
+[integration.json](../integration.json) identifies the exact Core, CLI, Lua, Python, Rust
+and portal revisions selected for integration CI. These are test inputs, not an
 ecosystem release version or a replacement for component dependency manifests.
 Update pins deliberately and validate both scenarios together.
 The initial Core, CLI and Lua pins match the source revisions declared by the
@@ -53,6 +53,19 @@ smoke and effective Core selection verification requires a separate reviewed
 manifest and runner update against that contract. Keep API, packaging and
 behavioral tests in the component repository. Current component status does not
 change the evidence established by the older workspace pins.
+
+Rust is pinned to initial scaffold `fa0cf127e5814964045b34fdbd3544aa365319d3`
+with the same checkout coverage: both Full scenarios record its repository,
+configured and actual commit, and dirty state, and the gates reject missing,
+foreign, changed or dirty Rust sources. The sibling layout exposes Core at
+`../opentlv` from the Rust checkout. The scaffold has no Cargo workspace, so
+Full does not run Cargo, report a Rust Core dependency or add Rust to portal
+source assembly. The Rust binding still lives in Core during migration; Core
+CI owns its tests, and the workspace does not repeat them. Once
+`opentlv-rust` provides its standalone Cargo build and Core selection contract,
+add Cargo build smoke and effective Core selection verification through a
+reviewed manifest and runner update. Keep API, FFI, ABI, packaging and
+behavioral tests in the Rust repository and Core behavioral tests in Core.
 
 | Scenario | CLI and Lua Core selection | Documentation sources |
 | --- | --- | --- |
@@ -148,9 +161,9 @@ component releases, dependency-contract changes or portal source-pin updates.
 This is a maintainer process; no scheduled updater or downstream CI dispatch
 is installed.
 
-1. Select candidate Core, CLI, Lua, Python and portal revisions after reviewing their
-   component-owned quality-gate results where available. For Python, explicitly
-   record whether coverage is still limited to checkout identity. Resolve refs to full commit SHAs once
+1. Select candidate Core, CLI, Lua, Python, Rust and portal revisions after reviewing their
+   component-owned quality-gate results where available. For Python and Rust,
+   explicitly record whether coverage is still limited to checkout identity. Resolve refs to full commit SHAs once
    and record the old/new revisions and upstream evidence in an update PR.
 2. Check the candidate portal's source manifest and navigation against the
    proposed siblings. Its remote documentation pins and the consumers' remote
@@ -227,7 +240,7 @@ python -B scripts/integration.py full --mode sibling --source-root .. --work-dir
 
 This explicit mode accepts different HEADs and local changes, records configured
 and actual revisions plus dirty state, and marks the report `local_development`.
-All manifest repositories, including `opentlv-python`, must exist under
+All manifest repositories, including `opentlv-python` and `opentlv-rust`, must exist under
 `--source-root`; bootstrap can create missing siblings.
 It never fetches, switches branches or writes build output into those siblings.
 Portal output is created from a disposable copy. A local-development report is
