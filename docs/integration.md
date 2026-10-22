@@ -54,18 +54,30 @@ manifest and runner update against that contract. Keep API, packaging and
 behavioral tests in the component repository. Current component status does not
 change the evidence established by the older workspace pins.
 
-Rust is pinned to initial scaffold `fa0cf127e5814964045b34fdbd3544aa365319d3`
-with the same checkout coverage: both Full scenarios record its repository,
-configured and actual commit, and dirty state, and the gates reject missing,
-foreign, changed or dirty Rust sources. The sibling layout exposes Core at
-`../opentlv` from the Rust checkout. The scaffold has no Cargo workspace, so
-Full does not run Cargo, report a Rust Core dependency or add Rust to portal
-source assembly. The Rust binding still lives in Core during migration; Core
-CI owns its tests, and the workspace does not repeat them. Once
-`opentlv-rust` provides its standalone Cargo build and Core selection contract,
-add Cargo build smoke and effective Core selection verification through a
-reviewed manifest and runner update. Keep API, FFI, ABI, packaging and
-behavioral tests in the Rust repository and Core behavioral tests in Core.
+Rust is pinned to `d4ba3ff27ff2a0a5934bdc9cb4bf54019c2274bc`, the final
+`opentlv-rust` revision of the
+[Rust migration](https://github.com/OpenTLV/opentlv-rust/issues/7). Both Full
+scenarios record its checkout identity like the other repositories, then run
+`cargo run --locked -p opentlv --example quick_start` with the toolchain set by
+`RUSTUP_TOOLCHAIN` (the workflow installs Rust's pinned stable 1.99.1) and a
+fresh Cargo target directory in the scenario's work directory. The runner reads
+every `core-selection.json` written by the `opentlv-sys` build script and
+requires a clean Core resolved inside that target directory at exactly the
+commit locked in `opentlv-sys/core/core-artifact.json`. The report records the
+quick start output and the effective Rust Core dependency with its declared
+lock and selection mode.
+
+Rust uses its locked Core in both scenarios. Its local Core override,
+`OPENTLV_CORE_SOURCE`, is development-only and rejected in CI, so the sibling
+scenario does not substitute the manifest's Core for Rust; the gate requires
+the effective Rust Core to equal the lock and the declared lock to agree across
+scenarios. Building Rust against a sibling Core remains a local development
+workflow owned by the
+[Rust development guide](https://github.com/OpenTLV/opentlv-rust/blob/main/docs/development/rust.md#local-workspace-development).
+The pinned portal predates the Rust documentation source, so the workspace
+documentation smoke does not assemble Rust manuals; the portal's own CI covers
+them. Keep API, FFI, ABI, packaging and behavioral tests in the Rust
+repository and Core behavioral tests in Core.
 
 | Scenario | CLI and Lua Core selection | Documentation sources |
 | --- | --- | --- |
@@ -80,10 +92,11 @@ Lua ABIs and compiler matrices remain component-owned coverage.
 
 The runner checks that the selected Core source appears in the compiler commands
 and that remote fallback resolves the exact declared commit. It verifies CLI
-startup and a small fixed-format input, loads the freshly built Lua module, and
-assembles portal sources and navigation through portal-owned functions.
-It does not run CTest, Busted, CLI regression suites, Core example checks, browser
-tests, Doxygen, a complete site build or deployment.
+startup and a small fixed-format input, loads the freshly built Lua module, runs
+the Rust quick start against its locked Core, and assembles portal sources and
+navigation through portal-owned functions.
+It does not run CTest, Busted, Cargo tests, CLI regression suites, Core example
+checks, browser tests, Doxygen, a complete site build or deployment.
 
 Different component pins are allowed and reported separately. The sibling
 scenario tests one shared Core revision; the remote scenario does not claim that
@@ -162,7 +175,7 @@ This is a maintainer process; no scheduled updater or downstream CI dispatch
 is installed.
 
 1. Select candidate Core, CLI, Lua, Python, Rust and portal revisions after reviewing their
-   component-owned quality-gate results where available. For Python and Rust,
+   component-owned quality-gate results where available. For Python,
    explicitly record whether coverage is still limited to checkout identity. Resolve refs to full commit SHAs once
    and record the old/new revisions and upstream evidence in an update PR.
 2. Check the candidate portal's source manifest and navigation against the
@@ -217,7 +230,9 @@ python -m pre_commit run --all-files --show-diff-on-failure
 ```
 
 Full checks additionally need CMake 3.24+, Ninja, a compatible C/C++ toolchain,
-Git, Lua 5.4 and its development headers. Install the small portal assembly
+Git, Lua 5.4 and its development headers, and Rust 1.82 or newer through
+rustup (CI sets `RUSTUP_TOOLCHAIN=1.99.1`). On Windows, keep the work directory
+short: the Rust build clones and builds Core deep inside its Cargo target. Install the small portal assembly
 dependency set into an isolated Python environment:
 
 ```sh

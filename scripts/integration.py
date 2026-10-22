@@ -147,6 +147,49 @@ def core_pin(source):
     return pins[0]
 
 
+def rust_pin(source):
+    lock = json.loads((source / "opentlv-sys/core/core-artifact.json").read_text(encoding="utf-8"))
+    require(lock.get("repository") == "OpenTLV/opentlv" and isinstance(lock.get("commit"), str)
+            and SHA.fullmatch(lock["commit"]), f"Expected one immutable Core lock in {source}")
+    return lock["commit"]
+
+
+def rust_selection(target, pin):
+    found = sorted(target.rglob("core-selection.json"))
+    require(found, "No Rust Core selection evidence")
+    selections = [json.loads(path.read_text(encoding="utf-8")) for path in found]
+    for selected in selections:
+        # Only Core resolved inside this scenario's fresh Cargo target is accepted.
+        require(Path(selected["source_dir"]).resolve().is_relative_to(target.resolve()),
+                "Rust Core was not resolved inside the work directory")
+        require(selected["repository"] == "OpenTLV/opentlv"
+                and selected["commit"] == selected["locked_commit"] == pin
+                and selected["dirty"] is False, "Rust did not use its exact Core lock")
+    require(len({(item["mode"], item["commit"]) for item in selections}) == 1,
+            "Rust Core selections disagree")
+    return selections[0]
+
+
+def rust_smoke(runner, source, args, env):
+    # opentlv-rust rejects its local Core override in CI, so both scenarios use its lock.
+    pin = rust_pin(source)
+    target = args.work_dir / "rust"
+    rust_env = {k: v for k, v in env.items() if not k.startswith(("CARGO_", "RUSTFLAGS"))}
+    rust_env["CARGO_TARGET_DIR"] = str(target)
+    output = runner.run(["cargo", "run", "--locked", "-q", "-p", "opentlv",
+                         "--example", "quick_start"], cwd=source, env=rust_env)
+    require(output, "Rust quick_start output is empty")
+    selected = rust_selection(target, pin)
+    runner.report["core_dependencies"]["rust"] = {
+        "path": selected["source_dir"],
+        "repository": f"https://github.com/{selected['repository']}.git",
+        "commit": selected["commit"], "dirty": selected["dirty"], "declared_pin": pin,
+        "mode": args.mode, "selection": selected["mode"], "verified": selected["verified"],
+    }
+    runner.report["rust_output"] = output
+    runner.report["checks"]["rust"] = "passed"
+
+
 def cmake_arguments(mode, core=None):
     args = [
         "-DCMAKE_BUILD_TYPE=Release", "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON",
@@ -242,11 +285,14 @@ def full(args, runner, manifest):
         "ninja": runner.run(["ninja", "--version"]),
         "lua": runner.run([args.lua, "-v"]),
         "git": runner.run(["git", "--version"]),
+        "cargo": runner.run(["cargo", "--version"]),
+        "rustc": runner.run(["rustc", "--version"]),
     }
-    # Python and Rust are pinned to repository scaffolds. Their checkout identities
-    # are recorded above; build smoke awaits component-owned build contracts.
+    # Python is pinned to a repository scaffold. Its checkout identity is
+    # recorded above; build smoke awaits a component-owned build contract.
     for key in ("cli", "lua"):
         component_smoke(runner, key, sources[key], sources["core"], args, env)
+    rust_smoke(runner, sources["rust"], args, env)
     docs_report = args.work_dir / "docs.json"
     docs_command = [sys.executable, "-B", ROOT / "scripts/docs_smoke.py",
                     "--portal", sources["docs"],

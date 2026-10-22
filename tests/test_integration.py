@@ -6,6 +6,7 @@
 import copy
 import json
 from pathlib import Path
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -18,7 +19,9 @@ sys.path.insert(0, str(ROOT / "scripts"))
 import integration
 
 # Components pinned to repository scaffolds: checkout identity only, no build smoke.
-SCAFFOLDS = ("python", "rust")
+SCAFFOLDS = ("python",)
+# Standalone components with a sibling Core checkout in the editor layout.
+STANDALONE = ("python", "rust")
 
 
 class ContractTests(unittest.TestCase):
@@ -65,14 +68,14 @@ class ContractTests(unittest.TestCase):
         config = json.loads((self.root / "opentlv.code-workspace").read_text(encoding="utf-8"))
         roots = {item["name"]: (self.root / item["path"]).resolve()
                  for item in config["folders"]}
-        for key in SCAFFOLDS:
+        for key in STANDALONE:
             with self.subTest(key=key):
                 self.assertEqual(roots[f"opentlv-{key}"].parent / "opentlv", roots["opentlv"])
         self.assertEqual(config["settings"], {})
 
     def test_reject_scaffold_checkout_configuration_drift(self):
         original = integration.load_manifest(self.root)
-        for key in SCAFFOLDS:
+        for key in STANDALONE:
             for field, value in (("revision", "main"), ("directory", f"../../opentlv-{key}"),
                                  ("repository", f"https://github.com/other/opentlv-{key}.git")):
                 manifest = copy.deepcopy(original)
@@ -103,9 +106,13 @@ class ContractTests(unittest.TestCase):
                     return "tool version"
 
                 runner.run.side_effect = run
-                with patch.object(integration, "component_smoke") as smoke:
+                with patch.object(integration, "component_smoke") as smoke, \
+                        patch.object(integration, "rust_smoke") as rust:
                     integration.full(args, runner, manifest)
                 self.assertEqual([call.args[1] for call in smoke.call_args_list], ["cli", "lua"])
+                rust.assert_called_once()
+                self.assertEqual(rust.call_args.args[1], args.work_dir / "sources/opentlv-rust")
+                self.assertIn("rustc", runner.report["tools"])
                 expected = set(manifest["repositories"]) - ({"core"} if mode == "remote" else set())
                 self.assertEqual(set(runner.report["sources"]), expected)
                 for key in SCAFFOLDS:
@@ -113,6 +120,75 @@ class ContractTests(unittest.TestCase):
                                      manifest["repositories"][key]["revision"])
                     self.assertNotIn(key, runner.report["checks"])
                     self.assertNotIn(f"--{key}", runner.run.call_args.args[0])
+
+    def write_rust_lock(self, source, commit):
+        (source / "opentlv-sys/core").mkdir(parents=True, exist_ok=True)
+        self.write(str((source / "opentlv-sys/core/core-artifact.json").relative_to(self.root)),
+                   {"schema": 1, "repository": "OpenTLV/opentlv", "version": "0.7.1",
+                    "commit": commit, "release_tag": None})
+
+    def write_selection(self, target, name, **overrides):
+        selected = {"mode": "pinned-git", "verified": False, "repository": "OpenTLV/opentlv",
+                    "commit": "c" * 40, "locked_commit": "c" * 40, "dirty": False,
+                    "source_dir": str(target / name / "out/core/source")}
+        selected.update(overrides)
+        (target / name / "out").mkdir(parents=True, exist_ok=True)
+        self.write(str((target / name / "out/core-selection.json").relative_to(self.root)), selected)
+
+    def test_rust_lock_must_be_one_immutable_core_commit(self):
+        source = self.root / "rust"
+        self.write_rust_lock(source, "c" * 40)
+        self.assertEqual(integration.rust_pin(source), "c" * 40)
+        for commit in ("main", "C" * 40, None):
+            self.write_rust_lock(source, commit)
+            with self.subTest(commit=commit), self.assertRaises(ValueError):
+                integration.rust_pin(source)
+
+    def test_rust_selection_requires_the_exact_lock_inside_the_target(self):
+        target = self.root / "target"
+        self.write_selection(target, "a")
+        self.assertEqual(integration.rust_selection(target, "c" * 40)["commit"], "c" * 40)
+        with self.assertRaises(ValueError):
+            integration.rust_selection(target, "d" * 40)
+        for overrides in ({"commit": "d" * 40}, {"locked_commit": "d" * 40}, {"dirty": True},
+                          {"repository": "other/opentlv"},
+                          {"source_dir": str(self.root / "sibling/opentlv")},
+                          {"mode": "local-source"}):
+            with self.subTest(overrides=overrides):
+                shutil.rmtree(target)
+                self.write_selection(target, "a")
+                self.write_selection(target, "b", **overrides)
+                with self.assertRaises(ValueError):
+                    integration.rust_selection(target, "c" * 40)
+        shutil.rmtree(target)
+        with self.assertRaises(ValueError):
+            integration.rust_selection(target, "c" * 40)
+
+    def test_rust_smoke_uses_its_lock_in_both_scenarios(self):
+        source = self.root / "opentlv-rust"
+        self.write_rust_lock(source, "c" * 40)
+        for mode in ("sibling", "remote"):
+            with self.subTest(mode=mode):
+                args = SimpleNamespace(work_dir=self.root / mode, mode=mode)
+                runner = Mock()
+                runner.report = {"core_dependencies": {}, "checks": {}}
+
+                def run(command, *, cwd, env):
+                    self.assertEqual(cwd, source)
+                    self.assertEqual(env["CARGO_TARGET_DIR"], str(args.work_dir / "rust"))
+                    self.assertNotIn("CARGO_BUILD_TARGET", env)
+                    self.assertNotIn("RUSTFLAGS", env)
+                    self.write_selection(args.work_dir / "rust", "debug/build/opentlv-sys-1")
+                    return "Hello, world!"
+
+                runner.run.side_effect = run
+                integration.rust_smoke(runner, source, args, {
+                    "CARGO_BUILD_TARGET": "x", "RUSTFLAGS": "-C x", "PATH": "p"})
+                self.assertEqual(runner.run.call_args.args[0][:2], ["cargo", "run"])
+                dependency = runner.report["core_dependencies"]["rust"]
+                self.assertEqual((dependency["commit"], dependency["declared_pin"], dependency["mode"]),
+                                 ("c" * 40, "c" * 40, mode))
+                self.assertEqual(runner.report["checks"]["rust"], "passed")
 
     def test_reject_duplicate_root_absolute_path_and_build_settings(self):
         original = json.loads((self.root / "opentlv.code-workspace").read_text(encoding="utf-8"))
