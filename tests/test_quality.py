@@ -36,11 +36,12 @@ def fixture():
             "schema": 2, "status": "passed", "mode": mode, "execution": copy.deepcopy(ctx),
             "local_development": False, "workspace_dirty": False, "workspace_commit": ctx["sha"],
             "manifest_sha256": locked["manifest_sha256"],
-            "checks": dict.fromkeys(("cli", "lua", "rust", "documentation"), "passed"),
+            "checks": dict.fromkeys(("cli", "lua", "rust", "go", "documentation"), "passed"),
             "steps": [{"returncode": 0}], "seconds": 1.0,
             "cli_version": "otlv fixture", "lua_version": "Lua fixture",
             "rust_output": "Hello, world!",
-            "tools": dict.fromkeys(("git", "cmake", "ninja", "lua", "cargo", "rustc"), "fixture"),
+            "go_output": "Hello, world!",
+            "tools": dict.fromkeys(("git", "cmake", "ninja", "lua", "cargo", "rustc", "go"), "fixture"),
             "sources": {key: {"repository": item["repository"], "commit": item["revision"],
                               "configured_revision": item["revision"], "dirty": False}
                         for key, item in repos.items() if mode == "sibling" or key != "core"},
@@ -48,7 +49,7 @@ def fixture():
                 key: {"repository": repos["core"]["repository"], "mode": mode,
                       "declared_pin": "c" * 40, "dirty": False,
                       "commit": repos["core"]["revision"] if mode == "sibling" else "c" * 40}
-                for key in ("cli", "lua")} | {
+                for key in ("cli", "lua", "go")} | {
                 "rust": {"repository": repos["core"]["repository"], "mode": mode,
                          "declared_pin": "e" * 40, "dirty": False, "commit": "e" * 40}},
             "documentation": {"sources": [
@@ -131,8 +132,8 @@ class EvidenceTests(unittest.TestCase):
             with self.subTest(section=section, key=key, field=field), self.assertRaises(ValueError):
                 quality.validate_report(report, "sibling", self.locked)
 
-    def test_scaffold_checkouts_required_in_both_scenarios(self):
-        for key in ("python", "rust"):
+    def test_standalone_checkouts_required_in_both_scenarios(self):
+        for key in ("python", "rust", "go"):
             for mode in ("sibling", "remote"):
                 report = copy.deepcopy(self.evidence["reports"][mode])
                 del report["sources"][key]
@@ -140,10 +141,43 @@ class EvidenceTests(unittest.TestCase):
                     quality.validate_report(report, mode, self.locked)
 
     def test_scaffold_runtime_success_is_not_part_of_checkout_coverage(self):
-        report = copy.deepcopy(self.evidence["reports"]["sibling"])
-        report["checks"]["python"] = "passed"
-        with self.assertRaises(ValueError):
-            quality.validate_report(report, "sibling", self.locked)
+        for key in ("python",):
+            for mode in ("sibling", "remote"):
+                for section in ("checks", "core_dependencies"):
+                    report = copy.deepcopy(self.evidence["reports"][mode])
+                    report[section][key] = "passed"
+                    with self.subTest(key=key, mode=mode, section=section), \
+                            self.assertRaises(ValueError):
+                        quality.validate_report(report, mode, self.locked)
+
+    def test_go_checkout_identity_required_in_both_scenarios(self):
+        for mode in ("sibling", "remote"):
+            for field, value in (("commit", "d" * 40), ("configured_revision", "d" * 40),
+                                 ("repository", "https://github.com/other/opentlv-go.git"),
+                                 ("dirty", True)):
+                report = copy.deepcopy(self.evidence["reports"][mode])
+                report["sources"]["go"][field] = value
+                with self.subTest(mode=mode, field=field), self.assertRaises(ValueError):
+                    quality.validate_report(report, mode, self.locked)
+
+    def test_go_runtime_and_effective_core_are_required(self):
+        for mode in ("sibling", "remote"):
+            for change in ("check", "dependency", "commit", "dirty", "output", "tool"):
+                report = copy.deepcopy(self.evidence["reports"][mode])
+                if change == "check":
+                    del report["checks"]["go"]
+                elif change == "dependency":
+                    del report["core_dependencies"]["go"]
+                elif change == "commit":
+                    report["core_dependencies"]["go"]["commit"] = "f" * 40
+                elif change == "dirty":
+                    report["core_dependencies"]["go"]["dirty"] = True
+                elif change == "output":
+                    report["go_output"] = " "
+                else:
+                    del report["tools"]["go"]
+                with self.subTest(mode=mode, change=change), self.assertRaises(ValueError):
+                    quality.validate_report(report, mode, self.locked)
 
     def test_rust_smoke_and_core_lock_are_required_in_both_scenarios(self):
         for mode in ("sibling", "remote"):

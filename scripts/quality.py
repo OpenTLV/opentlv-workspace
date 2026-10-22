@@ -74,13 +74,13 @@ def validate_report(report, mode, locked):
     require(report.get("execution") == locked["execution"], "Stale or foreign integration report")
     require(report.get("workspace_commit") == locked["execution"]["sha"]
             and report.get("manifest_sha256") == locked["manifest_sha256"], "Integration input drift")
-    require(report.get("checks") == dict.fromkeys(("cli", "lua", "rust", "documentation"), "passed"),
+    require(report.get("checks") == dict.fromkeys(("cli", "lua", "rust", "go", "documentation"), "passed"),
             "Incomplete smoke evidence")
     require(report.get("steps") and all(step.get("returncode") == 0 for step in report["steps"]),
             "Missing or unsuccessful commands")
     require(all(isinstance(report.get(key), str) and report[key].strip()
-                for key in ("cli_version", "lua_version", "rust_output"))
-            and set(report.get("tools", {})) == {"git", "cmake", "ninja", "lua", "cargo", "rustc"}
+                for key in ("cli_version", "lua_version", "rust_output", "go_output"))
+            and set(report.get("tools", {})) == {"git", "cmake", "ninja", "lua", "cargo", "rustc", "go"}
             and all(report["tools"].values()), "Missing runtime or tool evidence")
     require(isinstance(report.get("seconds"), (int, float)) and report["seconds"] > 0,
             "Missing integration timing")
@@ -93,7 +93,7 @@ def validate_report(report, mode, locked):
                 and item["dirty"] is False
                 and repository_identity(item["repository"])
                 == repository_identity(repos[key]["repository"]), f"Wrong {key} source")
-    require(set(report["core_dependencies"]) == {"cli", "lua", "rust"}, "Missing Core dependencies")
+    require(set(report["core_dependencies"]) == {"cli", "lua", "rust", "go"}, "Missing Core dependencies")
     for key, item in report["core_dependencies"].items():
         require(SHA.fullmatch(item["declared_pin"]) and item["dirty"] is False
                 and item["mode"] == mode
@@ -128,7 +128,7 @@ def validate_evidence(evidence, locked):
                        == evidence["reports"]["remote"]["sources"][key][field]
                        for field in ("commit", "repository", "configured_revision", "dirty")),
                 "Scenario sources disagree")
-    for key in ("cli", "lua", "rust"):
+    for key in ("cli", "lua", "rust", "go"):
         require(evidence["reports"]["sibling"]["core_dependencies"][key]["declared_pin"]
                 == evidence["reports"]["remote"]["core_dependencies"][key]["declared_pin"],
                 "Scenario dependency declarations disagree")

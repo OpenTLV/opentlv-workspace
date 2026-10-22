@@ -20,7 +20,7 @@ ROOT = Path(__file__).resolve().parents[1]
 SHA = re.compile(r"[0-9a-f]{40}")
 COMPONENTS = {"core": "opentlv", "cli": "opentlv-cli",
               "lua": "opentlv-lua", "python": "opentlv-python", "rust": "opentlv-rust",
-              "docs": "opentlv-docs"}
+              "go": "opentlv-go", "docs": "opentlv-docs"}
 
 
 def require(condition, message):
@@ -33,7 +33,7 @@ def load_manifest(root=ROOT):
     require(data.get("schema") == 1, "Unsupported integration manifest schema")
     repos = data.get("repositories")
     require(isinstance(repos, dict) and set(repos) == set(COMPONENTS),
-            "Integration manifest must identify Core, CLI, Lua, Python, Rust and docs")
+            "Integration manifest must identify Core, CLI, Lua, Python, Rust, Go and docs")
     for key, directory in COMPONENTS.items():
         item = repos[key]
         require(isinstance(item, dict), f"Invalid repository: {key}")
@@ -190,6 +190,49 @@ def rust_smoke(runner, source, args, env):
     runner.report["checks"]["rust"] = "passed"
 
 
+def go_pin(source):
+    lock = json.loads((source / "core-source.json").read_text(encoding="utf-8"))
+    require(lock.get("schema") == 1
+            and lock.get("repository") == "https://github.com/OpenTLV/opentlv.git"
+            and isinstance(lock.get("commit"), str) and SHA.fullmatch(lock["commit"]),
+            "Go requires an immutable Core source lock")
+    return lock["commit"]
+
+
+def go_smoke(runner, source, core, args, env):
+    pin = go_pin(source)
+    target = args.work_dir / "go"
+    command = [sys.executable, "-B", source / "scripts/go.py", "--build-dir", target,
+               "--jobs", str(args.jobs)]
+    if args.mode == "sibling":
+        require(core is not None, "Go sibling smoke needs an explicit Core source")
+        command += ["--core-source", core]
+    runner.run([*command, "--", "build", "./..."], env=env)
+    output = runner.run([*command, "--", "run", "./examples/quick_start"], env=env)
+    require("Hello, world!" in output, "Go quick_start did not produce its expected output")
+    selected = json.loads((target / "core-selection.json").read_text(encoding="utf-8"))
+    expected = core if args.mode == "sibling" else target / "core"
+    identity = runner.identity(expected)
+    require(selected.get("schema") == 1 and selected.get("status") == "passed"
+            and selected.get("mode") == ("local-source" if args.mode == "sibling" else "pinned-source")
+            and selected.get("locked_commit") == pin
+            and Path(selected["source_dir"]).resolve() == expected.resolve()
+            and Path(selected["build_dir"]).resolve() == (target / "native").resolve()
+            and selected.get("repository") == "https://github.com/OpenTLV/opentlv.git"
+            and selected.get("commit") == identity["commit"]
+            and selected.get("dirty") == identity["dirty"]
+            and selected.get("shared") is False and selected.get("minimal") is False
+            and selected.get("command") == ["run", "./examples/quick_start"],
+            "Go Core selection evidence does not match this build")
+    if args.mode == "remote":
+        require(identity["commit"] == pin and not identity["dirty"],
+                "Go standalone smoke did not use its clean Core pin")
+    assert_core_compiled(target / "native", expected)
+    runner.report["core_dependencies"]["go"] = dict(identity, declared_pin=pin, mode=args.mode)
+    runner.report["go_output"] = output
+    runner.report["checks"]["go"] = "passed"
+
+
 def cmake_arguments(mode, core=None):
     args = [
         "-DCMAKE_BUILD_TYPE=Release", "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON",
@@ -287,12 +330,14 @@ def full(args, runner, manifest):
         "git": runner.run(["git", "--version"]),
         "cargo": runner.run(["cargo", "--version"]),
         "rustc": runner.run(["rustc", "--version"]),
+        "go": runner.run(["go", "version"]),
     }
     # Python is pinned to a repository scaffold. Its checkout identity is
     # recorded above; build smoke awaits a component-owned build contract.
     for key in ("cli", "lua"):
         component_smoke(runner, key, sources[key], sources["core"], args, env)
     rust_smoke(runner, sources["rust"], args, env)
+    go_smoke(runner, sources["go"], sources["core"], args, env)
     docs_report = args.work_dir / "docs.json"
     docs_command = [sys.executable, "-B", ROOT / "scripts/docs_smoke.py",
                     "--portal", sources["docs"],

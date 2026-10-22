@@ -21,7 +21,7 @@ import integration
 # Components pinned to repository scaffolds: checkout identity only, no build smoke.
 SCAFFOLDS = ("python",)
 # Standalone components with a sibling Core checkout in the editor layout.
-STANDALONE = ("python", "rust")
+STANDALONE = ("python", "rust", "go")
 
 
 class ContractTests(unittest.TestCase):
@@ -90,7 +90,7 @@ class ContractTests(unittest.TestCase):
         for mode in ("sibling", "remote"):
             with self.subTest(mode=mode):
                 args = SimpleNamespace(work_dir=self.root / mode, source_root=None,
-                                       mode=mode, lua="lua5.4")
+                                       mode=mode, lua="lua5.4", jobs=2)
                 runner = Mock()
                 runner.report = {"sources": {}, "checks": {}}
                 runner.checkout.side_effect = lambda item, parent: parent / item["directory"]
@@ -107,10 +107,15 @@ class ContractTests(unittest.TestCase):
 
                 runner.run.side_effect = run
                 with patch.object(integration, "component_smoke") as smoke, \
-                        patch.object(integration, "rust_smoke") as rust:
+                        patch.object(integration, "rust_smoke") as rust, \
+                        patch.object(integration, "go_smoke") as go:
                     integration.full(args, runner, manifest)
                 self.assertEqual([call.args[1] for call in smoke.call_args_list], ["cli", "lua"])
                 rust.assert_called_once()
+                go.assert_called_once()
+                self.assertEqual(go.call_args.args[1], args.work_dir / "sources/opentlv-go")
+                self.assertEqual(go.call_args.args[2],
+                                 args.work_dir / "sources/opentlv" if mode == "sibling" else None)
                 self.assertEqual(rust.call_args.args[1], args.work_dir / "sources/opentlv-rust")
                 self.assertIn("rustc", runner.report["tools"])
                 expected = set(manifest["repositories"]) - ({"core"} if mode == "remote" else set())
@@ -126,6 +131,50 @@ class ContractTests(unittest.TestCase):
         self.write(str((source / "opentlv-sys/core/core-artifact.json").relative_to(self.root)),
                    {"schema": 1, "repository": "OpenTLV/opentlv", "version": "0.7.1",
                     "commit": commit, "release_tag": None})
+
+    def test_go_smoke_requires_matching_core_receipt_and_compilation(self):
+        for mode in ("sibling", "remote"):
+            args = SimpleNamespace(work_dir=self.root / mode, mode=mode, jobs=2)
+            target = args.work_dir / "go"
+            core = self.root / "sibling-core" if mode == "sibling" else None
+            selected_core = core or target / "core"
+            native = target / "native"
+            native.mkdir(parents=True)
+            (native / "compile_commands.json").write_text(json.dumps([
+                {"file": str(selected_core / "tlv/src/reader.c")}]))
+            selected = dict(schema=1, status="passed", locked_commit="c" * 40,
+                            mode="local-source" if mode == "sibling" else "pinned-source",
+                            source_dir=str(selected_core), build_dir=str(native),
+                            repository="https://github.com/OpenTLV/opentlv.git",
+                            commit="b" * 40 if mode == "sibling" else "c" * 40,
+                            dirty=False, shared=False, minimal=False,
+                            command=["run", "./examples/quick_start"])
+            runner = Mock()
+            runner.report = {"core_dependencies": {}, "checks": {}}
+            runner.run.return_value = "Hello, world!"
+            runner.identity.return_value = {key: selected[key] for key in ("commit", "dirty", "repository")}
+            receipt = target / "core-selection.json"
+            receipt.write_text(json.dumps(selected))
+            with patch.object(integration, "go_pin", return_value="c" * 40):
+                integration.go_smoke(runner, self.root / "go-source", core, args, {})
+                self.assertEqual(runner.report["checks"]["go"], "passed")
+                self.assertEqual("--core-source" in runner.run.call_args.args[0], mode == "sibling")
+                for field, value in (("commit", "d" * 40), ("locked_commit", "d" * 40),
+                                     ("source_dir", str(self.root / "foreign")), ("dirty", True),
+                                     ("status", "failed"), ("command", ["build", "./..."]),
+                                     ("shared", True), ("repository", "https://other.invalid/core")):
+                    receipt.write_text(json.dumps(dict(selected, **{field: value})))
+                    with self.subTest(mode=mode, field=field), self.assertRaises(ValueError):
+                        integration.go_smoke(runner, self.root / "go-source", core, args, {})
+
+    def test_go_lock_rejects_moving_and_foreign_inputs(self):
+        original = dict(schema=1, repository="https://github.com/OpenTLV/opentlv.git", commit="c" * 40)
+        self.write("core-source.json", original)
+        self.assertEqual(integration.go_pin(self.root), "c" * 40)
+        for field, value in (("commit", "main"), ("repository", "https://other.invalid/core")):
+            self.write("core-source.json", dict(original, **{field: value}))
+            with self.subTest(field=field), self.assertRaises(ValueError):
+                integration.go_pin(self.root)
 
     def write_selection(self, target, name, **overrides):
         selected = {"mode": "pinned-git", "verified": False, "repository": "OpenTLV/opentlv",

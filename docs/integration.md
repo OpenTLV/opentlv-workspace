@@ -30,7 +30,7 @@ configuration and setup behavior; it does not revalidate component compatibility
 
 ## Full CI and supported combinations
 
-[integration.json](../integration.json) identifies the exact Core, CLI, Lua, Python, Rust
+[integration.json](../integration.json) identifies the exact Core, CLI, Lua, Python, Rust, Go
 and portal revisions selected for integration CI. These are test inputs, not an
 ecosystem release version or a replacement for component dependency manifests.
 Update pins deliberately and validate both scenarios together.
@@ -117,6 +117,30 @@ manual dispatch or a reusable call from Release Gate. PR and Main workflows do
 not trigger Full, regardless of changed paths. Full locks the workspace commit
 and manifest, runs both scenarios and validates both reports before its gate
 can pass. Standalone Full can run on a candidate branch.
+
+### Go migration handoff
+
+Go Full smoke builds the standalone module and runs `examples/quick_start` through
+its component-owned `scripts/go.py` helper with Go 1.22.2. Sibling mode passes
+`--core-source` explicitly; remote mode supplies no override and requires the
+clean immutable commit from Go's `core-source.json` under the scenario build tree.
+The runner verifies the resulting receipt against Git identity and actual native
+compiler commands. The Full/Release gate requires Go output, checkout and Core
+provenance in both scenarios; it rejects missing or mismatched evidence.
+
+The source transfer preserves the baseline public API, cgo bridge and module path.
+Standalone module renaming/versioning remains Go #4, component CI remains Go #3,
+and native behavior stays Core-owned. Workspace smoke does not duplicate Go's
+behavioral suite or add `go.work`, cgo settings or automatic sibling detection.
+
+**Merge prerequisite:** the current `integration.json` Go pin `5366306` is the
+original scaffold. The prepared Go #1/#2 implementation must be committed and
+made fetchable first; replace that pin with its exact reviewed commit before
+merging this workspace change or running hosted Full. Do not use a moving branch,
+claim the scaffold builds, or treat a dirty local checkout as release evidence.
+Local smoke may exercise the prepared standalone source independently in both
+selection modes, but cannot validate an immutable Go revision that does not yet
+exist. The final pin and both hosted scenarios complete workspace #40.
 
 ## Release Gate
 
