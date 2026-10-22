@@ -23,6 +23,10 @@
 		{
 			"path": "../opentlv-python",
 			"name": "opentlv-python"
+		},
+		{
+			"path": "../opentlv-rust",
+			"name": "opentlv-rust"
 		}
 	],
 	"settings": {}

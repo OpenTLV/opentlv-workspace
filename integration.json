@@ -21,6 +21,11 @@
       "repository": "https://github.com/OpenTLV/opentlv-python.git",
       "revision": "9d612e8ea4b43f3b7dc56b7bc5cc506356be2cbd"
     },
+    "rust": {
+      "directory": "opentlv-rust",
+      "repository": "https://github.com/OpenTLV/opentlv-rust.git",
+      "revision": "fa0cf127e5814964045b34fdbd3544aa365319d3"
+    },
     "docs": {
       "directory": "opentlv-docs",
       "repository": "https://github.com/OpenTLV/opentlv-docs.git",

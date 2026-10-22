@@ -17,6 +17,9 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 import integration
 
+# Components pinned to repository scaffolds: checkout identity only, no build smoke.
+SCAFFOLDS = ("python", "rust")
+
 
 class ContractTests(unittest.TestCase):
     def setUp(self):
@@ -58,24 +61,27 @@ class ContractTests(unittest.TestCase):
             with self.subTest(key=key), self.assertRaises(ValueError):
                 integration.validate_workspace(self.root)
 
-    def test_python_core_is_a_sibling_without_shared_build_settings(self):
+    def test_scaffold_core_is_a_sibling_without_shared_build_settings(self):
         config = json.loads((self.root / "opentlv.code-workspace").read_text(encoding="utf-8"))
         roots = {item["name"]: (self.root / item["path"]).resolve()
                  for item in config["folders"]}
-        self.assertEqual(roots["opentlv-python"].parent / "opentlv", roots["opentlv"])
+        for key in SCAFFOLDS:
+            with self.subTest(key=key):
+                self.assertEqual(roots[f"opentlv-{key}"].parent / "opentlv", roots["opentlv"])
         self.assertEqual(config["settings"], {})
 
-    def test_reject_python_checkout_configuration_drift(self):
+    def test_reject_scaffold_checkout_configuration_drift(self):
         original = integration.load_manifest(self.root)
-        for field, value in (("revision", "main"), ("directory", "../../opentlv-python"),
-                             ("repository", "https://github.com/other/opentlv-python.git")):
-            manifest = copy.deepcopy(original)
-            manifest["repositories"]["python"][field] = value
-            self.write("integration.json", manifest)
-            with self.subTest(field=field), self.assertRaises(ValueError):
-                integration.validate_workspace(self.root)
+        for key in SCAFFOLDS:
+            for field, value in (("revision", "main"), ("directory", f"../../opentlv-{key}"),
+                                 ("repository", f"https://github.com/other/opentlv-{key}.git")):
+                manifest = copy.deepcopy(original)
+                manifest["repositories"][key][field] = value
+                self.write("integration.json", manifest)
+                with self.subTest(key=key, field=field), self.assertRaises(ValueError):
+                    integration.validate_workspace(self.root)
 
-    def test_full_records_python_checkout_without_claiming_runtime_coverage(self):
+    def test_full_records_scaffold_checkouts_without_claiming_runtime_coverage(self):
         manifest = integration.load_manifest(self.root)
         by_directory = {item["directory"]: item for item in manifest["repositories"].values()}
         for mode in ("sibling", "remote"):
@@ -102,10 +108,11 @@ class ContractTests(unittest.TestCase):
                 self.assertEqual([call.args[1] for call in smoke.call_args_list], ["cli", "lua"])
                 expected = set(manifest["repositories"]) - ({"core"} if mode == "remote" else set())
                 self.assertEqual(set(runner.report["sources"]), expected)
-                self.assertEqual(runner.report["sources"]["python"]["commit"],
-                                 manifest["repositories"]["python"]["revision"])
-                self.assertNotIn("python", runner.report["checks"])
-                self.assertNotIn("--python", runner.run.call_args.args[0])
+                for key in SCAFFOLDS:
+                    self.assertEqual(runner.report["sources"][key]["commit"],
+                                     manifest["repositories"][key]["revision"])
+                    self.assertNotIn(key, runner.report["checks"])
+                    self.assertNotIn(f"--{key}", runner.run.call_args.args[0])
 
     def test_reject_duplicate_root_absolute_path_and_build_settings(self):
         original = json.loads((self.root / "opentlv.code-workspace").read_text(encoding="utf-8"))

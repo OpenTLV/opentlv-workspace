@@ -19,7 +19,8 @@ import bootstrap
 ROOT = Path(__file__).resolve().parents[1]
 SHA = re.compile(r"[0-9a-f]{40}")
 COMPONENTS = {"core": "opentlv", "cli": "opentlv-cli",
-              "lua": "opentlv-lua", "python": "opentlv-python", "docs": "opentlv-docs"}
+              "lua": "opentlv-lua", "python": "opentlv-python", "rust": "opentlv-rust",
+              "docs": "opentlv-docs"}
 
 
 def require(condition, message):
@@ -32,7 +33,7 @@ def load_manifest(root=ROOT):
     require(data.get("schema") == 1, "Unsupported integration manifest schema")
     repos = data.get("repositories")
     require(isinstance(repos, dict) and set(repos) == set(COMPONENTS),
-            "Integration manifest must identify Core, CLI, Lua, Python and docs")
+            "Integration manifest must identify Core, CLI, Lua, Python, Rust and docs")
     for key, directory in COMPONENTS.items():
         item = repos[key]
         require(isinstance(item, dict), f"Invalid repository: {key}")
@@ -242,8 +243,8 @@ def full(args, runner, manifest):
         "lua": runner.run([args.lua, "-v"]),
         "git": runner.run(["git", "--version"]),
     }
-    # Python currently has a repository scaffold only. Its checkout identity is
-    # recorded above; build/import smoke awaits a component-owned build contract.
+    # Python and Rust are pinned to repository scaffolds. Their checkout identities
+    # are recorded above; build smoke awaits component-owned build contracts.
     for key in ("cli", "lua"):
         component_smoke(runner, key, sources[key], sources["core"], args, env)
     docs_report = args.work_dir / "docs.json"
