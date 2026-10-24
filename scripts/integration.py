@@ -20,7 +20,7 @@ ROOT = Path(__file__).resolve().parents[1]
 SHA = re.compile(r"[0-9a-f]{40}")
 COMPONENTS = {"core": "opentlv", "cli": "opentlv-cli",
               "lua": "opentlv-lua", "python": "opentlv-python", "rust": "opentlv-rust",
-              "go": "opentlv-go", "docs": "opentlv-docs"}
+              "go": "opentlv-go", "js": "opentlv-js", "docs": "opentlv-docs"}
 DOCUMENTATION_COMPONENTS = ("core", "cli", "lua", "python", "rust", "go")
 
 
@@ -34,7 +34,7 @@ def load_manifest(root=ROOT):
     require(data.get("schema") == 1, "Unsupported integration manifest schema")
     repos = data.get("repositories")
     require(isinstance(repos, dict) and set(repos) == set(COMPONENTS),
-            "Integration manifest must identify Core, CLI, Lua, Python, Rust, Go and docs")
+            "Integration manifest must identify Core, CLI, Lua, Python, Rust, Go, JS and docs")
     for key, directory in COMPONENTS.items():
         item = repos[key]
         require(isinstance(item, dict), f"Invalid repository: {key}")
@@ -335,6 +335,8 @@ def full(args, runner, manifest):
     }
     # Python checkout and documentation are covered; runtime smoke remains
     # a separate integration change against its component-owned build contract.
+    # JS is a metadata-only scaffold: record checkout provenance in both modes,
+    # but add runtime/docs smoke only once its standalone contracts are available.
     for key in ("cli", "lua"):
         component_smoke(runner, key, sources[key], sources["core"], args, env)
     rust_smoke(runner, sources["rust"], args, env)
