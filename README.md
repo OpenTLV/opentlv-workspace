@@ -2,11 +2,11 @@
 
 Official Visual Studio Code multi-root workspace for developing the OpenTLV ecosystem.
 
-This repository provides the shared editor configuration and workspace documentation for working with the `opentlv`, `opentlv-cli`, `opentlv-lua`, `opentlv-python`, `opentlv-rust`, `opentlv-go`, and `opentlv-docs` repositories.
+This repository provides the shared editor configuration and workspace documentation for working with the `opentlv`, `opentlv-cli`, `opentlv-lua`, `opentlv-python`, `opentlv-rust`, `opentlv-go`, `opentlv-js`, and `opentlv-docs` repositories.
 
 ## Overview
 
-The workspace opens eight repositories: `opentlv-workspace`, `opentlv`, `opentlv-docs`, `opentlv-cli`, `opentlv-lua`, `opentlv-python`, `opentlv-rust`, and `opentlv-go`. Core owns the C core, C++ API and its in-tree bindings. The standalone CLI, Lua, Python and Rust repositories own their implementations, tests, packaging and technical documentation. The Go migration preserves the existing binding in a standalone module with explicit Core selection. The Docs repository owns portal navigation, introductions, assembly and publication; assembling technical sources does not transfer their component ownership.
+The workspace opens nine repositories: `opentlv-workspace`, `opentlv`, `opentlv-docs`, `opentlv-cli`, `opentlv-lua`, `opentlv-python`, `opentlv-rust`, `opentlv-go`, and `opentlv-js`. Core owns the C core, C++ API and its in-tree bindings. The standalone CLI, Lua, Python and Rust repositories own their implementations, tests, packaging and technical documentation. The Go migration preserves the existing binding in a standalone module with explicit Core selection. JS currently contains WASM migration metadata; the working WASM implementation remains in Core. The Docs repository owns portal navigation, introductions, assembly and publication; assembling technical sources does not transfer their component ownership.
 
 The workspace uses native Visual Studio Code functionality to work with multiple repositories in a single editor window.
 
@@ -30,7 +30,7 @@ git clone https://github.com/OpenTLV/opentlv-workspace.git
 python opentlv-workspace/scripts/bootstrap.py
 ```
 
-The script clones the missing `OpenTLV/opentlv`, `OpenTLV/opentlv-docs`, `OpenTLV/opentlv-cli`, `OpenTLV/opentlv-lua`, `OpenTLV/opentlv-python`, `OpenTLV/opentlv-rust`, and `OpenTLV/opentlv-go` repositories next to `opentlv-workspace` using HTTPS by default. To use SSH instead, with GitHub SSH access configured:
+The script clones the missing `OpenTLV/opentlv`, `OpenTLV/opentlv-docs`, `OpenTLV/opentlv-cli`, `OpenTLV/opentlv-lua`, `OpenTLV/opentlv-python`, `OpenTLV/opentlv-rust`, `OpenTLV/opentlv-go`, and `OpenTLV/opentlv-js` repositories next to `opentlv-workspace` using HTTPS by default. To use SSH instead, with GitHub SSH access configured:
 
 ```bash
 python opentlv-workspace/scripts/bootstrap.py --protocol ssh
@@ -57,6 +57,7 @@ git clone git@github.com:OpenTLV/opentlv-lua.git
 git clone git@github.com:OpenTLV/opentlv-python.git
 git clone git@github.com:OpenTLV/opentlv-rust.git
 git clone git@github.com:OpenTLV/opentlv-go.git
+git clone git@github.com:OpenTLV/opentlv-js.git
 ```
 
 These clone commands use SSH and require GitHub SSH access. If you already have a parent directory for OpenTLV checkouts, use it instead of creating a new one.
@@ -72,6 +73,7 @@ OpenTLV/
 â”œâ”€â”€ opentlv-python/
 â”œâ”€â”€ opentlv-rust/
 â”œâ”€â”€ opentlv-go/
+â”œâ”€â”€ opentlv-js/
 â””â”€â”€ opentlv-workspace/
     â””â”€â”€ opentlv.code-workspace
 ```
@@ -96,6 +98,7 @@ The roots in `opentlv.code-workspace` use paths relative to the workspace reposi
 | `opentlv-python` | `../opentlv-python` | `opentlv-python` | Standalone Python binding, tests, packaging and documentation |
 | `opentlv-rust` | `../opentlv-rust` | `opentlv-rust` | Standalone Rust crates, tests, packaging and documentation |
 | `opentlv-go` | `../opentlv-go` | `opentlv-go` | Standalone Go binding, cgo bridge, tests and examples |
+| `opentlv-js` | `../opentlv-js` | `opentlv-js` | WASM/JavaScript migration metadata; standalone build pending |
 
 The [Core repository guide](https://github.com/OpenTLV/opentlv) describes Core and links its technical documentation. Standalone CLI, Lua, Python and Rust select Core through their own build systems; opening sibling checkouts does not select a dependency.
 
@@ -138,6 +141,29 @@ The first command uses Go's immutable `core-source.json` dependency; the second 
 
 The workspace supplies no `go.work`, cgo flags or library paths. Go remains buildable outside this workspace. See the [migration handoff](docs/integration.md#go-migration-handoff) for the required immutable Go pin before hosted Full validation.
 
+### JavaScript / WASM and Local Core Development
+
+Keep `opentlv-js` and `opentlv` as sibling checkouts. The local Core path from
+`opentlv-js` is `../opentlv`; opening both roots does not select a dependency or
+configure Emscripten. Bootstrap preserves existing branches and local changes.
+
+The pinned JS revision currently contains migration metadata only. There is no
+standalone JS build command or supported Core override flag yet. For current
+WASM development, build the implementation inside the Core checkout using its
+[WebAssembly guide](https://github.com/OpenTLV/opentlv/blob/a9a6f9470c2b285744738b40196bef9d0341fead/docs/development/webassembly.md).
+That builds the selected Core tree; it is not a standalone JS override.
+
+Follow the [JS repository status](https://github.com/OpenTLV/opentlv-js) and
+[migration contract](https://github.com/OpenTLV/opentlv-js/blob/0e71aa6da491397b6c6dec2c258dff0bf65bab44/MIGRATION.md).
+Source transfer is tracked in [JS #8](https://github.com/OpenTLV/opentlv-js/issues/8)
+and the standalone build with explicit sibling Core selection in
+[JS #9](https://github.com/OpenTLV/opentlv-js/issues/9). Once available, use that
+component-owned override explicitly for `../opentlv`, and its pinned dependency
+without the override for standalone development. The workspace supplies no npm
+configuration, Emscripten environment, library paths or automatic Core selection.
+See the [WASM migration handoff](docs/integration.md#wasm-migration-handoff) for
+the remaining final build verification under #42.
+
 ## Development Documentation
 
 Use each owner's documentation for current prerequisites, build commands, supported capabilities and release status:
@@ -149,6 +175,7 @@ Use each owner's documentation for current prerequisites, build commands, suppor
 - [Rust development](https://github.com/OpenTLV/opentlv-rust/blob/main/docs/development/rust.md), [usage](https://github.com/OpenTLV/opentlv-rust/blob/main/docs/guides/rust.md) and [quality gates](https://github.com/OpenTLV/opentlv-rust/blob/main/docs/quality-gates.md): standalone Rust setup, usage and CI.
 - [Docs repository](https://github.com/OpenTLV/opentlv-docs): portal builds, tests and publication.
 - [Go development](https://github.com/OpenTLV/opentlv-go/blob/main/docs/development/go.md), [usage](https://github.com/OpenTLV/opentlv-go/blob/main/docs/guides/go.md) and [migration contract](https://github.com/OpenTLV/opentlv-go/blob/main/MIGRATION.md): standalone setup, explicit Core override and source provenance.
+- [JS repository](https://github.com/OpenTLV/opentlv-js): current WASM migration status and future standalone build/dependency contract; see the [current local workflow](#javascript--wasm-and-local-core-development).
 
 For changes to this workspace repository, see [CONTRIBUTING.md](CONTRIBUTING.md).
 
@@ -156,7 +183,7 @@ Optional contributor tooling is described in [Pre-commit Checks](CONTRIBUTING.md
 
 ## Workspace Integration CI
 
-Four workflows separate PR validation, lightweight Main smoke, manual Full integration and a manual Release Gate. PR checks configuration, formatting, offline bootstrap and orchestration without building components. Main checks configuration and bootstrap on Linux. Full builds CLI and Lua against sibling and remote Core revisions, builds and runs the Rust quick start against Rust's own locked Core in both scenarios, and checks portal assembly/navigation. Go builds its standalone module and runs its quick start using an explicit sibling Core in sibling mode and its own immutable Core pin in remote mode. Python still has checkout coverage only at its scaffold pin. Release reruns Full on the exact dispatch commit before publishing an attested integration snapshot; component releases remain independent.
+Four workflows separate PR validation, lightweight Main smoke, manual Full integration and a manual Release Gate. PR checks configuration, formatting, offline bootstrap and orchestration without building components. Main checks configuration and bootstrap on Linux. Full builds CLI and Lua against sibling and remote Core revisions, builds and runs the Rust quick start against Rust's own locked Core in both scenarios, and checks portal assembly/navigation. Go builds its standalone module and runs its quick start using an explicit sibling Core in sibling mode and its own immutable Core pin in remote mode. Python has checkout and documentation coverage. JS has checkout coverage only at its migration bootstrap pin; standalone WASM smoke remains pending. Release reruns Full on the exact dispatch commit before publishing an attested integration snapshot; component releases remain independent.
 
 [integration.json](integration.json) pins the repository combination used by CI; it does not select component release versions or change bootstrap behavior. See [integration quality gates](docs/integration.md) for supported configurations, local commands, revision evidence, the required merge check and performance measurements.
 
@@ -165,7 +192,7 @@ Maintainers review pins at least monthly and after relevant upstream changes thr
 ## Development Principles
 
 - Use native VS Code multi-root workspace functionality.
-- Keep `opentlv`, `opentlv-cli`, `opentlv-lua`, `opentlv-python`, `opentlv-rust`, `opentlv-go`, and `opentlv-docs` independent of the workspace repository.
+- Keep `opentlv`, `opentlv-cli`, `opentlv-lua`, `opentlv-python`, `opentlv-rust`, `opentlv-go`, `opentlv-js`, and `opentlv-docs` independent of the workspace repository.
 - Use the build and package tools documented by each component owner.
 - Keep build, test, and release workflows with the components they serve.
 - Keep build artifacts and local configuration outside version control.

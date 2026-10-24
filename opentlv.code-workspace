@@ -31,6 +31,10 @@
 		{
 			"path": "../opentlv-go",
 			"name": "opentlv-go"
+		},
+		{
+			"path": "../opentlv-js",
+			"name": "opentlv-js"
 		}
 	],
 	"settings": {}

@@ -30,7 +30,7 @@ configuration and setup behavior; it does not revalidate component compatibility
 
 ## Full CI and supported combinations
 
-[integration.json](../integration.json) identifies the exact Core, CLI, Lua, Python, Rust, Go
+[integration.json](../integration.json) identifies the exact Core, CLI, Lua, Python, Rust, Go, JS
 and portal revisions selected for integration CI. These are test inputs, not an
 ecosystem release version or a replacement for component dependency manifests.
 Update pins deliberately and validate both scenarios together.
@@ -106,6 +106,40 @@ manual dispatch or a reusable call from Release Gate. PR and Main workflows do
 not trigger Full, regardless of changed paths. Full locks the workspace commit
 and manifest, runs both scenarios and validates both reports before its gate
 can pass. Standalone Full can run on a candidate branch.
+
+### WASM migration handoff
+
+JS is pinned to `0e71aa6da491397b6c6dec2c258dff0bf65bab44`, the merged
+migration-provenance bootstrap. PR/Main validate its editor root, bootstrap URLs
+and immutable pin. Offline bootstrap tests exercise HTTPS/SSH cloning and
+preservation of existing JS checkouts alongside the other repositories.
+Both Full scenarios fetch and record its clean checkout identity; the quality
+gate rejects missing, dirty, foreign or mismatched JS source evidence.
+
+This pin contains only README, license, changelog and migration metadata.
+There is no JS runtime smoke, JS Core dependency receipt, Emscripten/Node tool
+requirement or JS portal source in the workspace gate yet. A passing checkout
+check does not establish WASM build, API, browser/worker or release readiness.
+The six existing portal sources and existing component smoke tests are unchanged.
+
+[Workspace #42](https://github.com/OpenTLV/opentlv-workspace/issues/42) remains
+open for final build verification after
+[JS #8](https://github.com/OpenTLV/opentlv-js/issues/8) and
+[JS #9](https://github.com/OpenTLV/opentlv-js/issues/9) provide the implementation
+and standalone build. At that handoff:
+
+1. Select a reviewed immutable JS revision containing the standalone build.
+2. Document and use its actual explicit sibling Core override; verify its
+   pinned dependency when the override is absent. Keep dependency setup in JS.
+3. Add bounded build/load/example smoke in both workspace scenarios and require
+   effective Core provenance. Run the final hosted integration checks.
+4. Keep full Query, ABI, browser/worker, reproducibility and behavioral suites
+   with JS/Core; coordinate portal registration with
+   [Docs #93](https://github.com/OpenTLV/opentlv-docs/issues/93).
+
+The [local development instructions](../README.md#javascript--wasm-and-local-core-development)
+describe the currently available Core-hosted workflow without inventing a
+standalone override or treating workspace registration as extraction completion.
 
 ### Go migration handoff
 

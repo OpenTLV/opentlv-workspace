@@ -19,10 +19,10 @@ sys.path.insert(0, str(ROOT / "scripts"))
 import integration
 import docs_smoke
 
-# Components covered by checkout/documentation checks, without runtime smoke.
-DOCUMENTATION_ONLY = ("python",)
+# Components with checkout evidence but no runtime smoke (Python also has docs).
+CHECKOUT_ONLY = ("python", "js")
 # Standalone components with a sibling Core checkout in the editor layout.
-STANDALONE = ("python", "rust", "go")
+STANDALONE = ("python", "rust", "go", "js")
 
 
 class ContractTests(unittest.TestCase):
@@ -85,7 +85,7 @@ class ContractTests(unittest.TestCase):
                 with self.subTest(key=key, field=field), self.assertRaises(ValueError):
                     integration.validate_workspace(self.root)
 
-    def test_full_records_documentation_checkouts_without_claiming_runtime_coverage(self):
+    def test_full_records_checkouts_without_claiming_unavailable_runtime_coverage(self):
         manifest = integration.load_manifest(self.root)
         by_directory = {item["directory"]: item for item in manifest["repositories"].values()}
         for mode in ("sibling", "remote"):
@@ -121,11 +121,14 @@ class ContractTests(unittest.TestCase):
                 self.assertIn("rustc", runner.report["tools"])
                 expected = set(manifest["repositories"]) - ({"core"} if mode == "remote" else set())
                 self.assertEqual(set(runner.report["sources"]), expected)
-                for key in DOCUMENTATION_ONLY:
+                for key in CHECKOUT_ONLY:
                     self.assertEqual(runner.report["sources"][key]["commit"],
                                      manifest["repositories"][key]["revision"])
                     self.assertNotIn(key, runner.report["checks"])
                 command = runner.run.call_args.args[0]
+                self.assertNotIn("--js", command)
+                self.assertNotIn("emcc", runner.report["tools"])
+                self.assertNotIn("node", runner.report["tools"])
                 for key in integration.DOCUMENTATION_COMPONENTS:
                     if key == "core" and mode == "remote":
                         self.assertNotIn("--core", command)

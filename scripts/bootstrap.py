@@ -59,6 +59,11 @@ REPOSITORIES = (
         https_url="https://github.com/OpenTLV/opentlv-go.git",
         ssh_url="git@github.com:OpenTLV/opentlv-go.git",
     ),
+    Repository(
+        directory="opentlv-js",
+        https_url="https://github.com/OpenTLV/opentlv-js.git",
+        ssh_url="git@github.com:OpenTLV/opentlv-js.git",
+    ),
 )
 
 
