@@ -33,6 +33,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Add the `opentlv-js` sibling repository to the VS Code workspace for local editing and source control. (#42)
 - Add `opentlv-go` to the workspace, HTTPS/SSH bootstrap and pinned checkout validation. Build and run the standalone Go quick start with explicit sibling Core selection or its immutable remote Core pin, validate effective dependency evidence and document the prerequisite Go source-pin handoff. (#40)
 - Add `opentlv-rust` to the workspace, HTTPS/SSH bootstrap and pinned checkout validation, with documented sibling Core layout and Rust development kept in Core until migration. (#37)
 - Add `opentlv-python` to the workspace, HTTPS/SSH bootstrap and pinned checkout validation, with documented sibling Core layout. (#33)
