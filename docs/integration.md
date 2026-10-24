@@ -117,8 +117,8 @@ The runner verifies the resulting receipt against Git identity and actual native
 compiler commands. The Full/Release gate requires Go output, checkout and Core
 provenance in both scenarios; it rejects missing or mismatched evidence.
 
-The final migration combination selects Go `2a52389`, cleaned Core `a9a6f94`
-and Docs `996628b`. Go uses its canonical standalone module and independent
+The final migration combination selects Go `c6af85d`, cleaned Core `a9a6f94`,
+Lua `25d8783` and Docs `996628b`. Go uses its canonical standalone module and independent
 binding version. Its native Core lock remains the original `cb3caed5` baseline;
 sibling mode separately checks compatibility with cleaned Core. Workspace smoke
 does not duplicate Go's behavioral suite or add `go.work`, cgo settings or
@@ -127,14 +127,24 @@ automatic sibling detection.
 The portal smoke now requires all six sources (Core, CLI, Lua, Python, Rust and
 Go), verifies explicit sibling paths, and rejects missing, duplicate, omitted,
 dirty or mismatched source evidence. Remote documentation uses the portal's own
-immutable pins; its Go source is `8c62688`, whose runtime/build files are identical
-to the documentation-only review `2a52389`. This distinction is recorded rather
+immutable pins; its Go source is `8c62688`, whose runtime sources and native build
+helper are unchanged in `c6af85d`. The latter adds the review and Windows CI hash
+repair. This distinction is recorded rather
 than treating portal and native dependency selections as the same input.
+
+The first post-merge [Workspace Full 40072566623](https://github.com/OpenTLV/opentlv-workspace/actions/runs/40072566623)
+at `df2b648` passed remote integration but failed sibling documentation assembly:
+the old Lua pin `c463066` lacked `lua/quality-gates.md`. Lua `25d8783` matches the
+selected portal's Lua revision and contains that manual. Go `c6af85d` passed
+[Go Full 40072168513](https://github.com/OpenTLV/opentlv-go/actions/runs/40072168513),
+including all six configurations and the quality gate. These pin corrections
+require a new complete Workspace Full; neither the failed run nor its successful
+remote job establishes acceptance of the corrected combination.
 
 Run hosted Full on the committed workspace candidate before claiming final
 integration acceptance. Both scenarios and the attempt-matched aggregate must
 pass; Main checks and local reports cannot replace this evidence. See the
-[Go migration review](https://github.com/OpenTLV/opentlv-go/blob/2a52389b7ee9dfbd895841a1840153d9cd8a41f4/MIGRATION.md#final-cross-repository-review-7)
+[Go migration review](https://github.com/OpenTLV/opentlv-go/blob/c6af85d2c11cfc6c98897398b2ec3b6e5335a491/MIGRATION.md#final-cross-repository-review-7)
 for source parity, component checks and the migration completion criteria.
 
 ## Release Gate

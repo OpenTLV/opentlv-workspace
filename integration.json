@@ -14,7 +14,7 @@
     "lua": {
       "directory": "opentlv-lua",
       "repository": "https://github.com/OpenTLV/opentlv-lua.git",
-      "revision": "c463066ca24f524d3ae9c7dff949796629367d03"
+      "revision": "25d8783f1ef0def6c8790c7060a756fab635d3e4"
     },
     "python": {
       "directory": "opentlv-python",
@@ -29,7 +29,7 @@
     "go": {
       "directory": "opentlv-go",
       "repository": "https://github.com/OpenTLV/opentlv-go.git",
-      "revision": "2a52389b7ee9dfbd895841a1840153d9cd8a41f4"
+      "revision": "c6af85d2c11cfc6c98897398b2ec3b6e5335a491"
     },
     "docs": {
       "directory": "opentlv-docs",

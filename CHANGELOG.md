@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Align the Lua integration pin with the portal's manuals to restore `lua/quality-gates.md` in sibling assembly, and select the Go repair verified by hosted Full CI. (OpenTLV/opentlv-go#7, OpenTLV/opentlv#684)
 - Advance Go, cleaned Core and Docs integration pins for the final Go migration review; select Python manuals and verify all six portal sources in both Full scenarios without adding component test suites. (OpenTLV/opentlv-go#7, OpenTLV/opentlv#684)
 - Pin `opentlv-rust` to its final migration revision `d4ba3ff` instead of the initial scaffold; Full now builds and runs the Rust quick start in both scenarios with Rust's pinned stable toolchain and requires the effective Core to be the clean commit locked by `opentlv-sys`, since Rust rejects its local Core override in CI. Document standalone Rust development with the sibling Core and replace links to Core's removed Rust guides. (OpenTLV/opentlv-rust#7)
 - Separate PR validation, lightweight Main smoke, manual Full integration and a Release Gate for attested workspace snapshots; document reviewed integration-pin updates. (#31)
