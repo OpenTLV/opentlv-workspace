@@ -4,7 +4,7 @@
     "core": {
       "directory": "opentlv",
       "repository": "https://github.com/OpenTLV/opentlv.git",
-      "revision": "1ed4e0f63360755472bdebee1fa1e1609b190e98"
+      "revision": "a9a6f9470c2b285744738b40196bef9d0341fead"
     },
     "cli": {
       "directory": "opentlv-cli",
@@ -19,7 +19,7 @@
     "python": {
       "directory": "opentlv-python",
       "repository": "https://github.com/OpenTLV/opentlv-python.git",
-      "revision": "9d612e8ea4b43f3b7dc56b7bc5cc506356be2cbd"
+      "revision": "74d7ed756229ab11544d5eba38568ae6f2bfddb0"
     },
     "rust": {
       "directory": "opentlv-rust",
@@ -29,12 +29,12 @@
     "go": {
       "directory": "opentlv-go",
       "repository": "https://github.com/OpenTLV/opentlv-go.git",
-      "revision": "53663060ac1bb9d198f36c3cb5047182d42cb95d"
+      "revision": "2a52389b7ee9dfbd895841a1840153d9cd8a41f4"
     },
     "docs": {
       "directory": "opentlv-docs",
       "repository": "https://github.com/OpenTLV/opentlv-docs.git",
-      "revision": "7e641f1f445d88bab7c2ffaa4693265ac31b2ba9"
+      "revision": "996628be4afe014c3245ff571b1d5140fa79a56d"
     }
   }
 }
