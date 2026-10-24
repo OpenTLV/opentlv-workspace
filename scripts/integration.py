@@ -21,6 +21,7 @@ SHA = re.compile(r"[0-9a-f]{40}")
 COMPONENTS = {"core": "opentlv", "cli": "opentlv-cli",
               "lua": "opentlv-lua", "python": "opentlv-python", "rust": "opentlv-rust",
               "go": "opentlv-go", "docs": "opentlv-docs"}
+DOCUMENTATION_COMPONENTS = ("core", "cli", "lua", "python", "rust", "go")
 
 
 def require(condition, message):
@@ -332,8 +333,8 @@ def full(args, runner, manifest):
         "rustc": runner.run(["rustc", "--version"]),
         "go": runner.run(["go", "version"]),
     }
-    # Python is pinned to a repository scaffold. Its checkout identity is
-    # recorded above; build smoke awaits a component-owned build contract.
+    # Python checkout and documentation are covered; runtime smoke remains
+    # a separate integration change against its component-owned build contract.
     for key in ("cli", "lua"):
         component_smoke(runner, key, sources[key], sources["core"], args, env)
     rust_smoke(runner, sources["rust"], args, env)
@@ -342,6 +343,8 @@ def full(args, runner, manifest):
     docs_command = [sys.executable, "-B", ROOT / "scripts/docs_smoke.py",
                     "--portal", sources["docs"],
                     "--cli", sources["cli"], "--lua", sources["lua"],
+                    "--python", sources["python"], "--rust", sources["rust"],
+                    "--go", sources["go"],
                     "--mode", args.mode, "--output", docs_report,
                     "--work-dir", args.work_dir / "portal"]
     if args.mode == "sibling":

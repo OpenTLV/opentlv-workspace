@@ -37,22 +37,13 @@ Update pins deliberately and validate both scenarios together.
 The initial Core, CLI and Lua pins match the source revisions declared by the
 pinned portal. The manifest intentionally does not follow moving main branches.
 
-Python is pinned to initial scaffold `9d612e8ea4b43f3b7dc56b7bc5cc506356be2cbd`.
-Both Full scenarios check out this revision and record its repository, configured
-and actual commit, and dirty state. The Full and Release gates reject missing,
-foreign, changed or dirty Python sources just like other manifest repositories.
-The sibling layout exposes Core at `../opentlv` from the Python checkout.
-The remote scenario has no sibling Core checkout.
-
-This is checkout coverage only: the old Python pin has no standalone build
-configuration, so Full does not build or import it, report a Python Core
-dependency, or add it to portal source assembly. The
-[current Python development guide](https://github.com/OpenTLV/opentlv-python/blob/main/docs/development/python.md)
-owns its standalone build and Core selection contract. Adding Python build/import
-smoke and effective Core selection verification requires a separate reviewed
-manifest and runner update against that contract. Keep API, packaging and
-behavioral tests in the component repository. Current component status does not
-change the evidence established by the older workspace pins.
+Python is pinned to `74d7ed756229ab11544d5eba38568ae6f2bfddb0`, matching the
+selected portal's Python source. Both Full scenarios record its clean checkout
+identity and assemble its manuals. This is checkout and documentation coverage;
+the workspace does not build/import Python or report a Python Core dependency.
+Runtime smoke remains a separate reviewed integration change against the
+[Python development contract](https://github.com/OpenTLV/opentlv-python/blob/74d7ed756229ab11544d5eba38568ae6f2bfddb0/docs/development/python.md).
+Keep API, packaging and behavioral tests in the component repository.
 
 Rust is pinned to `d4ba3ff27ff2a0a5934bdc9cb4bf54019c2274bc`, the final
 `opentlv-rust` revision of the
@@ -74,14 +65,12 @@ the effective Rust Core to equal the lock and the declared lock to agree across
 scenarios. Building Rust against a sibling Core remains a local development
 workflow owned by the
 [Rust development guide](https://github.com/OpenTLV/opentlv-rust/blob/main/docs/development/rust.md#local-workspace-development).
-The pinned portal predates the Rust documentation source, so the workspace
-documentation smoke does not assemble Rust manuals; the portal's own CI covers
-them. Keep API, FFI, ABI, packaging and behavioral tests in the Rust
-repository and Core behavioral tests in Core.
+The portal smoke also assembles Rust manuals. Keep API, FFI, ABI, packaging and
+behavioral tests in the Rust repository and Core behavioral tests in Core.
 
 | Scenario | CLI and Lua Core selection | Documentation sources |
 | --- | --- | --- |
-| `sibling` | Both consumers use the manifest's Core checkout through `FETCHCONTENT_SOURCE_DIR_OPENTLV_CORE`. | Portal preview explicitly selects the same Core, CLI and Lua siblings. |
+| `sibling` | Both consumers use the manifest's Core checkout through `FETCHCONTENT_SOURCE_DIR_OPENTLV_CORE`. | Portal preview explicitly selects the Core, CLI, Lua, Python, Rust and Go siblings. |
 | `remote` | Each consumer uses its own `cmake/Core.cmake` pin. Installed-package discovery is disabled. | Portal tooling fetches and locks the revisions from its own `docs-sources.json`. |
 
 Full CI currently validates Ubuntu 24.04, Ninja, Release, static Core and Lua 5.4.
@@ -128,19 +117,25 @@ The runner verifies the resulting receipt against Git identity and actual native
 compiler commands. The Full/Release gate requires Go output, checkout and Core
 provenance in both scenarios; it rejects missing or mismatched evidence.
 
-The source transfer preserves the baseline public API, cgo bridge and module path.
-Standalone module renaming/versioning remains Go #4, component CI remains Go #3,
-and native behavior stays Core-owned. Workspace smoke does not duplicate Go's
-behavioral suite or add `go.work`, cgo settings or automatic sibling detection.
+The final migration combination selects Go `2a52389`, cleaned Core `a9a6f94`
+and Docs `996628b`. Go uses its canonical standalone module and independent
+binding version. Its native Core lock remains the original `cb3caed5` baseline;
+sibling mode separately checks compatibility with cleaned Core. Workspace smoke
+does not duplicate Go's behavioral suite or add `go.work`, cgo settings or
+automatic sibling detection.
 
-**Merge prerequisite:** the current `integration.json` Go pin `5366306` is the
-original scaffold. The prepared Go #1/#2 implementation must be committed and
-made fetchable first; replace that pin with its exact reviewed commit before
-merging this workspace change or running hosted Full. Do not use a moving branch,
-claim the scaffold builds, or treat a dirty local checkout as release evidence.
-Local smoke may exercise the prepared standalone source independently in both
-selection modes, but cannot validate an immutable Go revision that does not yet
-exist. The final pin and both hosted scenarios complete workspace #40.
+The portal smoke now requires all six sources (Core, CLI, Lua, Python, Rust and
+Go), verifies explicit sibling paths, and rejects missing, duplicate, omitted,
+dirty or mismatched source evidence. Remote documentation uses the portal's own
+immutable pins; its Go source is `8c62688`, whose runtime/build files are identical
+to the documentation-only review `2a52389`. This distinction is recorded rather
+than treating portal and native dependency selections as the same input.
+
+Run hosted Full on the committed workspace candidate before claiming final
+integration acceptance. Both scenarios and the attempt-matched aggregate must
+pass; Main checks and local reports cannot replace this evidence. See the
+[Go migration review](https://github.com/OpenTLV/opentlv-go/blob/2a52389b7ee9dfbd895841a1840153d9cd8a41f4/MIGRATION.md#final-cross-repository-review-7)
+for source parity, component checks and the migration completion criteria.
 
 ## Release Gate
 

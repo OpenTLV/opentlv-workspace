@@ -10,10 +10,23 @@ from pathlib import Path
 import shutil
 import sys
 
+from integration import DOCUMENTATION_COMPONENTS
+
+
+def validate_selected(selected, args):
+    ids = [item["id"] for _, item in selected]
+    if len(ids) != len(DOCUMENTATION_COMPONENTS) or set(ids) != set(DOCUMENTATION_COMPONENTS):
+        raise ValueError("Portal must assemble all six workspace documentation sources")
+    for root, item in selected:
+        if not item.get("included") or root is None:
+            raise ValueError(f"Missing documentation source: {item['id']}")
+        if args.mode == "sibling" and root.resolve() != getattr(args, item["id"]).resolve():
+            raise ValueError(f"Wrong sibling documentation source: {item['id']}")
+
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    for name in ("portal", "cli", "lua", "work-dir", "output"):
+    for name in ("portal", "cli", "lua", "python", "rust", "go", "work-dir", "output"):
         parser.add_argument("--" + name, type=Path, required=True)
     parser.add_argument("--core", type=Path)
     parser.add_argument("--mode", choices=("sibling", "remote"), required=True)
@@ -40,7 +53,7 @@ def main():
         if not args.core:
             raise ValueError("Sibling preview requires an explicit Core checkout")
         os.environ["OPENTLV_DOCS_LOCAL"] = "1"
-        for name in ("core", "cli", "lua"):
+        for name in DOCUMENTATION_COMPONENTS:
             os.environ[f"OPENTLV_{name.upper()}_DIR"] = str(getattr(args, name).resolve())
     else:
         core = next(item for item in assembly.sources.manifest(portal) if item["id"] == "core")
@@ -48,13 +61,7 @@ def main():
         os.environ["OPENTLV_DOCS_SOURCE_ROOT"] = str(portal / "build/sources")
         os.environ["OPENTLV_DOCS_LOCK"] = str(portal / "build/sources.lock.json")
     selected = assembly.selected_sources(portal)
-    if {item["id"] for _, item in selected if item["included"]} != {"core", "cli", "lua"}:
-        raise ValueError("Portal must assemble all three workspace documentation sources")
-    if args.mode == "sibling":
-        for root, item in selected:
-            expected = getattr(args, item["id"]).resolve()
-            if root.resolve() != expected:
-                raise ValueError(f"Wrong sibling documentation source: {item['id']}")
+    validate_selected(selected, args)
     assembly.assemble(portal, selected)
     output = portal / "build/assembled"
     check_navigation(output / "docs", (output / "navigation.json").read_text(encoding="utf-8"))

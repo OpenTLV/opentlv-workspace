@@ -55,7 +55,7 @@ def fixture():
             "documentation": {"sources": [
                 {"id": key, "repository": repos[key]["repository"], "included": True, "dirty": False,
                  "commit": repos[key]["revision"], "revision": repos[key]["revision"]}
-                for key in ("core", "cli", "lua")]},
+                for key in quality.DOCUMENTATION_COMPONENTS]},
         }
     return {"schema": 1, "request": locked, "reports": reports}
 
@@ -208,6 +208,26 @@ class EvidenceTests(unittest.TestCase):
             report["documentation"]["sources"][0][field] = value
             with self.subTest(field=field), self.assertRaises(ValueError):
                 quality.validate_report(report, "remote", self.locked)
+
+    def test_all_documentation_sources_are_required_in_both_scenarios(self):
+        for mode in ("sibling", "remote"):
+            for key in quality.DOCUMENTATION_COMPONENTS:
+                for change in ("missing", "duplicate", "dirty", "wrong_commit", "wrong_repository"):
+                    report = copy.deepcopy(self.evidence["reports"][mode])
+                    sources = report["documentation"]["sources"]
+                    item = next(item for item in sources if item["id"] == key)
+                    if change == "missing":
+                        sources.remove(item)
+                    elif change == "duplicate":
+                        sources.append(copy.deepcopy(item))
+                    elif change == "dirty":
+                        item["dirty"] = True
+                    elif change == "wrong_commit":
+                        item["commit"] = "f" * 40
+                    else:
+                        item["repository"] = "https://github.com/other/component"
+                    with self.subTest(mode=mode, key=key, change=change), self.assertRaises(ValueError):
+                        quality.validate_report(report, mode, self.locked)
 
 
 class ReleaseTests(unittest.TestCase):

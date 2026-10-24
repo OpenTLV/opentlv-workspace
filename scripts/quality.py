@@ -10,7 +10,7 @@ import os
 from pathlib import Path
 import subprocess
 
-from integration import ROOT, SHA, load_manifest, require
+from integration import DOCUMENTATION_COMPONENTS, ROOT, SHA, load_manifest, require
 from bootstrap import repository_identity
 
 REPOSITORY = "OpenTLV/opentlv-workspace"
@@ -104,7 +104,8 @@ def validate_report(report, mode, locked):
         require(item["commit"] == (repos["core"]["revision"] if sibling
                                   else item["declared_pin"]), "Wrong effective Core revision")
     docs = report["documentation"]["sources"]
-    require(len(docs) == 3 and {item["id"] for item in docs} == {"core", "cli", "lua"},
+    require(len(docs) == len(DOCUMENTATION_COMPONENTS)
+            and {item["id"] for item in docs} == set(DOCUMENTATION_COMPONENTS),
             "Missing or duplicate documentation source")
     for item in docs:
         require(item["included"] is True and item["dirty"] is False

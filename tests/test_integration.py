@@ -17,9 +17,10 @@ from unittest.mock import Mock, patch
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 import integration
+import docs_smoke
 
-# Components pinned to repository scaffolds: checkout identity only, no build smoke.
-SCAFFOLDS = ("python",)
+# Components covered by checkout/documentation checks, without runtime smoke.
+DOCUMENTATION_ONLY = ("python",)
 # Standalone components with a sibling Core checkout in the editor layout.
 STANDALONE = ("python", "rust", "go")
 
@@ -84,7 +85,7 @@ class ContractTests(unittest.TestCase):
                 with self.subTest(key=key, field=field), self.assertRaises(ValueError):
                     integration.validate_workspace(self.root)
 
-    def test_full_records_scaffold_checkouts_without_claiming_runtime_coverage(self):
+    def test_full_records_documentation_checkouts_without_claiming_runtime_coverage(self):
         manifest = integration.load_manifest(self.root)
         by_directory = {item["directory"]: item for item in manifest["repositories"].values()}
         for mode in ("sibling", "remote"):
@@ -120,11 +121,43 @@ class ContractTests(unittest.TestCase):
                 self.assertIn("rustc", runner.report["tools"])
                 expected = set(manifest["repositories"]) - ({"core"} if mode == "remote" else set())
                 self.assertEqual(set(runner.report["sources"]), expected)
-                for key in SCAFFOLDS:
+                for key in DOCUMENTATION_ONLY:
                     self.assertEqual(runner.report["sources"][key]["commit"],
                                      manifest["repositories"][key]["revision"])
                     self.assertNotIn(key, runner.report["checks"])
-                    self.assertNotIn(f"--{key}", runner.run.call_args.args[0])
+                command = runner.run.call_args.args[0]
+                for key in integration.DOCUMENTATION_COMPONENTS:
+                    if key == "core" and mode == "remote":
+                        self.assertNotIn("--core", command)
+                    else:
+                        self.assertEqual(command[command.index(f"--{key}") + 1],
+                                         args.work_dir / "sources" / by_directory[
+                                             integration.COMPONENTS[key]]["directory"])
+
+    def test_portal_requires_every_source_and_explicit_sibling_paths(self):
+        selected = [(self.root / key, {"id": key, "included": True})
+                    for key in integration.DOCUMENTATION_COMPONENTS]
+        args = SimpleNamespace(mode="sibling", **{key: self.root / key
+                               for key in integration.DOCUMENTATION_COMPONENTS})
+        docs_smoke.validate_selected(selected, args)
+        for key in integration.DOCUMENTATION_COMPONENTS:
+            for change in ("missing", "duplicate", "omitted", "wrong_path"):
+                changed = copy.deepcopy(selected)
+                index = next(i for i, (_, item) in enumerate(changed) if item["id"] == key)
+                if change == "missing":
+                    changed.pop(index)
+                elif change == "duplicate":
+                    changed.append(changed[index])
+                elif change == "omitted":
+                    changed[index][1]["included"] = False
+                else:
+                    changed[index] = (self.root / "unexpected", changed[index][1])
+                with self.subTest(key=key, change=change), self.assertRaises(ValueError):
+                    docs_smoke.validate_selected(changed, args)
+        args.mode = "remote"
+        docs_smoke.validate_selected(selected, args)
+        with self.assertRaises(ValueError):
+            docs_smoke.validate_selected(selected[:-1], args)
 
     def write_rust_lock(self, source, commit):
         (source / "opentlv-sys/core").mkdir(parents=True, exist_ok=True)
