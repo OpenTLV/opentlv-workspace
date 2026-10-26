@@ -16,7 +16,7 @@ from integration import DOCUMENTATION_COMPONENTS
 def validate_selected(selected, args):
     ids = [item["id"] for _, item in selected]
     if len(ids) != len(DOCUMENTATION_COMPONENTS) or set(ids) != set(DOCUMENTATION_COMPONENTS):
-        raise ValueError("Portal must assemble all six workspace documentation sources")
+        raise ValueError("Portal must assemble all seven workspace documentation sources")
     for root, item in selected:
         if not item.get("included") or root is None:
             raise ValueError(f"Missing documentation source: {item['id']}")
@@ -26,7 +26,7 @@ def validate_selected(selected, args):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    for name in ("portal", "cli", "lua", "python", "rust", "go", "work-dir", "output"):
+    for name in ("portal", "cli", "lua", "python", "rust", "go", "js", "work-dir", "output"):
         parser.add_argument("--" + name, type=Path, required=True)
     parser.add_argument("--core", type=Path)
     parser.add_argument("--mode", choices=("sibling", "remote"), required=True)

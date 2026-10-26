@@ -21,7 +21,7 @@ SHA = re.compile(r"[0-9a-f]{40}")
 COMPONENTS = {"core": "opentlv", "cli": "opentlv-cli",
               "lua": "opentlv-lua", "python": "opentlv-python", "rust": "opentlv-rust",
               "go": "opentlv-go", "js": "opentlv-js", "docs": "opentlv-docs"}
-DOCUMENTATION_COMPONENTS = ("core", "cli", "lua", "python", "rust", "go")
+DOCUMENTATION_COMPONENTS = ("core", "cli", "lua", "python", "rust", "go", "js")
 
 
 def require(condition, message):
@@ -234,6 +234,53 @@ def go_smoke(runner, source, core, args, env):
     runner.report["checks"]["go"] = "passed"
 
 
+def js_pin(source):
+    lock = json.loads((source / "cmake/core-source.json").read_text(encoding="utf-8"))
+    require(lock.get("schema") == 1
+            and lock.get("repository") == "https://github.com/OpenTLV/opentlv.git"
+            and isinstance(lock.get("commit"), str) and SHA.fullmatch(lock["commit"]),
+            "JS requires an immutable Core source lock")
+    return lock["commit"]
+
+
+def js_smoke(runner, source, core, args, env):
+    pin = js_pin(source)
+    build = args.work_dir / "js"
+    mode = "local-development" if args.mode == "sibling" else "pinned-source"
+    command = ["emcmake", "cmake", "-S", source, "-B", build, "-G", "Ninja",
+               "-DCMAKE_BUILD_TYPE=Release", "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON",
+               "-DOPENTLV_BUILD_WASM_TESTS=ON"]
+    if args.mode == "sibling":
+        require(core is not None, "JS sibling smoke needs an explicit Core source")
+        command.append(f"-DFETCHCONTENT_SOURCE_DIR_OPENTLV_CORE={core.as_posix()}")
+    runner.run(command, env=env)
+    runner.run(["cmake", "--build", build, "--parallel", str(args.jobs)], env=env)
+    selected = core if args.mode == "sibling" else build / "_deps/opentlv_core-src"
+    receipt_path = build / "core-selection.json"
+    # The component owns byte-level source, version-input and checksum validation.
+    runner.run([sys.executable, "-B", source / "scripts/core_dependency.py",
+                "--source", selected, "--mode", mode, "--check", receipt_path], env=env)
+    receipt = json.loads(receipt_path.read_text(encoding="utf-8"))
+    identity = runner.identity(selected)
+    require(receipt.get("schema") == 1 and receipt.get("mode") == mode
+            and receipt.get("pinned_commit") == pin
+            and Path(receipt["source"]).resolve() == selected.resolve()
+            and receipt.get("repository") == "https://github.com/OpenTLV/opentlv.git"
+            and receipt.get("commit") == identity["commit"]
+            and receipt.get("dirty") == identity["dirty"],
+            "JS Core selection evidence does not match this build")
+    if args.mode == "remote":
+        require(identity["commit"] == pin and not identity["dirty"],
+                "JS standalone smoke did not use its clean Core pin")
+    assert_core_compiled(build, selected)
+    output = runner.run(["node", source / "tests/smoke.mjs", build / "dist"], env=env)
+    example = runner.run(["node", source / "examples/parse.mjs", build / "dist"], env=env)
+    require(output and example, "JS smoke/example output is empty")
+    runner.report["core_dependencies"]["js"] = dict(identity, declared_pin=pin, mode=args.mode)
+    runner.report["js_output"] = output + "\n" + example
+    runner.report["checks"]["js"] = "passed"
+
+
 def cmake_arguments(mode, core=None):
     args = [
         "-DCMAKE_BUILD_TYPE=Release", "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON",
@@ -332,21 +379,22 @@ def full(args, runner, manifest):
         "cargo": runner.run(["cargo", "--version"]),
         "rustc": runner.run(["rustc", "--version"]),
         "go": runner.run(["go", "version"]),
+        "emcc": runner.run(["emcc", "--version"]),
+        "node": runner.run(["node", "--version"]),
     }
     # Python checkout and documentation are covered; runtime smoke remains
     # a separate integration change against its component-owned build contract.
-    # JS is a metadata-only scaffold: record checkout provenance in both modes,
-    # but add runtime/docs smoke only once its standalone contracts are available.
     for key in ("cli", "lua"):
         component_smoke(runner, key, sources[key], sources["core"], args, env)
     rust_smoke(runner, sources["rust"], args, env)
     go_smoke(runner, sources["go"], sources["core"], args, env)
+    js_smoke(runner, sources["js"], sources["core"], args, env)
     docs_report = args.work_dir / "docs.json"
     docs_command = [sys.executable, "-B", ROOT / "scripts/docs_smoke.py",
                     "--portal", sources["docs"],
                     "--cli", sources["cli"], "--lua", sources["lua"],
                     "--python", sources["python"], "--rust", sources["rust"],
-                    "--go", sources["go"],
+                    "--go", sources["go"], "--js", sources["js"],
                     "--mode", args.mode, "--output", docs_report,
                     "--work-dir", args.work_dir / "portal"]
     if args.mode == "sibling":

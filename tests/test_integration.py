@@ -20,7 +20,7 @@ import integration
 import docs_smoke
 
 # Components with checkout evidence but no runtime smoke (Python also has docs).
-CHECKOUT_ONLY = ("python", "js")
+CHECKOUT_ONLY = ("python",)
 # Standalone components with a sibling Core checkout in the editor layout.
 STANDALONE = ("python", "rust", "go", "js")
 
@@ -109,11 +109,16 @@ class ContractTests(unittest.TestCase):
                 runner.run.side_effect = run
                 with patch.object(integration, "component_smoke") as smoke, \
                         patch.object(integration, "rust_smoke") as rust, \
-                        patch.object(integration, "go_smoke") as go:
+                        patch.object(integration, "go_smoke") as go, \
+                        patch.object(integration, "js_smoke") as js:
                     integration.full(args, runner, manifest)
                 self.assertEqual([call.args[1] for call in smoke.call_args_list], ["cli", "lua"])
                 rust.assert_called_once()
                 go.assert_called_once()
+                js.assert_called_once()
+                self.assertEqual(js.call_args.args[1], args.work_dir / "sources/opentlv-js")
+                self.assertEqual(js.call_args.args[2],
+                                 args.work_dir / "sources/opentlv" if mode == "sibling" else None)
                 self.assertEqual(go.call_args.args[1], args.work_dir / "sources/opentlv-go")
                 self.assertEqual(go.call_args.args[2],
                                  args.work_dir / "sources/opentlv" if mode == "sibling" else None)
@@ -126,9 +131,9 @@ class ContractTests(unittest.TestCase):
                                      manifest["repositories"][key]["revision"])
                     self.assertNotIn(key, runner.report["checks"])
                 command = runner.run.call_args.args[0]
-                self.assertNotIn("--js", command)
-                self.assertNotIn("emcc", runner.report["tools"])
-                self.assertNotIn("node", runner.report["tools"])
+                self.assertIn("--js", command)
+                self.assertIn("emcc", runner.report["tools"])
+                self.assertIn("node", runner.report["tools"])
                 for key in integration.DOCUMENTATION_COMPONENTS:
                     if key == "core" and mode == "remote":
                         self.assertNotIn("--core", command)
@@ -202,6 +207,57 @@ class ContractTests(unittest.TestCase):
                     receipt.write_text(json.dumps(dict(selected, **{field: value})))
                     with self.subTest(mode=mode, field=field), self.assertRaises(ValueError):
                         integration.go_smoke(runner, self.root / "go-source", core, args, {})
+
+    def test_js_smoke_checks_receipt_compiler_inputs_and_explicit_selection(self):
+        source = self.root / "js-source"
+        (source / "cmake").mkdir(parents=True)
+        (source / "cmake/core-source.json").write_text(json.dumps(dict(
+            schema=1, repository="https://github.com/OpenTLV/opentlv.git", commit="c" * 40)))
+        for mode in ("sibling", "remote"):
+            args = SimpleNamespace(work_dir=self.root / mode, mode=mode, jobs=2)
+            build = args.work_dir / "js"
+            build.mkdir(parents=True)
+            core = self.root / "cleaned-core" if mode == "sibling" else None
+            selected = core or build / "_deps/opentlv_core-src"
+            identity = dict(commit="b" * 40 if core else "c" * 40, dirty=False,
+                            repository="https://github.com/OpenTLV/opentlv.git")
+            receipt = dict(schema=1, mode="local-development" if core else "pinned-source",
+                           pinned_commit="c" * 40, source=str(selected), **identity)
+            (build / "compile_commands.json").write_text(json.dumps([
+                {"file": str(selected / "tlv/src/reader.c")}]))
+            path = build / "core-selection.json"
+            path.write_text(json.dumps(receipt))
+            runner = Mock()
+            runner.identity.return_value = identity
+            runner.run.return_value = "smoke passed"
+            runner.report = {"core_dependencies": {}, "checks": {}}
+            integration.js_smoke(runner, source, core, args, {})
+            commands = [call.args[0] for call in runner.run.call_args_list]
+            self.assertEqual(any("FETCHCONTENT_SOURCE_DIR" in str(arg)
+                                 for arg in commands[0]), mode == "sibling")
+            self.assertEqual(commands[-2], ["node", source / "tests/smoke.mjs", build / "dist"])
+            self.assertEqual(commands[-1], ["node", source / "examples/parse.mjs", build / "dist"])
+            self.assertEqual(runner.report["core_dependencies"]["js"]["commit"], identity["commit"])
+            for field, value in (("mode", "wrong"), ("pinned_commit", "d" * 40),
+                                 ("source", str(self.root / "foreign")), ("dirty", True),
+                                 ("commit", "f" * 40), ("repository", "https://other.invalid/core")):
+                path.write_text(json.dumps(dict(receipt, **{field: value})))
+                with self.subTest(mode=mode, field=field), self.assertRaises(ValueError):
+                    integration.js_smoke(runner, source, core, args, {})
+            path.write_text(json.dumps(receipt))
+            (build / "compile_commands.json").write_text('[]')
+            with self.assertRaises(ValueError):
+                integration.js_smoke(runner, source, core, args, {})
+
+    def test_js_lock_rejects_moving_and_foreign_inputs(self):
+        (self.root / "cmake").mkdir()
+        original = dict(schema=1, repository="https://github.com/OpenTLV/opentlv.git", commit="c" * 40)
+        self.write("cmake/core-source.json", original)
+        self.assertEqual(integration.js_pin(self.root), "c" * 40)
+        for field, value in (("commit", "main"), ("repository", "https://other.invalid/core")):
+            self.write("cmake/core-source.json", dict(original, **{field: value}))
+            with self.subTest(field=field), self.assertRaises(ValueError):
+                integration.js_pin(self.root)
 
     def test_go_lock_rejects_moving_and_foreign_inputs(self):
         original = dict(schema=1, repository="https://github.com/OpenTLV/opentlv.git", commit="c" * 40)

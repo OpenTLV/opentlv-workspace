@@ -34,7 +34,7 @@ configuration and setup behavior; it does not revalidate component compatibility
 and portal revisions selected for integration CI. These are test inputs, not an
 ecosystem release version or a replacement for component dependency manifests.
 Update pins deliberately and validate both scenarios together.
-The initial Core, CLI and Lua pins match the source revisions declared by the
+All seven component pins match the source revisions declared by the
 pinned portal. The manifest intentionally does not follow moving main branches.
 
 Python is pinned to `74d7ed756229ab11544d5eba38568ae6f2bfddb0`, matching the
@@ -45,9 +45,8 @@ Runtime smoke remains a separate reviewed integration change against the
 [Python development contract](https://github.com/OpenTLV/opentlv-python/blob/74d7ed756229ab11544d5eba38568ae6f2bfddb0/docs/development/python.md).
 Keep API, packaging and behavioral tests in the component repository.
 
-Rust is pinned to `d4ba3ff27ff2a0a5934bdc9cb4bf54019c2274bc`, the final
-`opentlv-rust` revision of the
-[Rust migration](https://github.com/OpenTLV/opentlv-rust/issues/7). Both Full
+Rust is pinned to `ee2d1f4eae24321f9dbd62d35fdeaf79e344bfbe`, matching the
+reviewed portal manuals. Both Full
 scenarios record its checkout identity like the other repositories, then run
 `cargo run --locked -p opentlv --example quick_start` with the toolchain set by
 `RUSTUP_TOOLCHAIN` (the workflow installs Rust's pinned stable 1.99.1) and a
@@ -70,10 +69,12 @@ behavioral tests in the Rust repository and Core behavioral tests in Core.
 
 | Scenario | CLI and Lua Core selection | Documentation sources |
 | --- | --- | --- |
-| `sibling` | Both consumers use the manifest's Core checkout through `FETCHCONTENT_SOURCE_DIR_OPENTLV_CORE`. | Portal preview explicitly selects the Core, CLI, Lua, Python, Rust and Go siblings. |
+| `sibling` | Both consumers use the manifest's Core checkout through `FETCHCONTENT_SOURCE_DIR_OPENTLV_CORE`. | Portal preview explicitly selects the Core, CLI, Lua, Python, Rust, Go and JavaScript siblings. |
 | `remote` | Each consumer uses its own `cmake/Core.cmake` pin. Installed-package discovery is disabled. | Portal tooling fetches and locks the revisions from its own `docs-sources.json`. |
 
 Full CI currently validates Ubuntu 24.04, Ninja, Release, static Core and Lua 5.4.
+JavaScript uses Emscripten 4.0.10 and Node 22; activate that toolchain before
+running Full locally.
 CLI and Lua use separate build trees because their Core options differ.
 Bootstrap remains tested on three platforms; this does not claim native
 integration validation on all three. Shared libraries, installed packages, other
@@ -84,6 +85,7 @@ and that remote fallback resolves the exact declared commit. It verifies CLI
 startup and a small fixed-format input, loads the freshly built Lua module, runs
 the Rust quick start against its locked Core, and assembles portal sources and
 navigation through portal-owned functions.
+JS additionally runs its existing Node smoke and parse example.
 It does not run CTest, Busted, Cargo tests, CLI regression suites, Core example
 checks, browser tests, Doxygen, a complete site build or deployment.
 
@@ -107,39 +109,51 @@ not trigger Full, regardless of changed paths. Full locks the workspace commit
 and manifest, runs both scenarios and validates both reports before its gate
 can pass. Standalone Full can run on a candidate branch.
 
-### WASM migration handoff
+### JavaScript migration handoff
 
-JS is pinned to `0e71aa6da491397b6c6dec2c258dff0bf65bab44`, the merged
-migration-provenance bootstrap. PR/Main validate its editor root, bootstrap URLs
-and immutable pin. Offline bootstrap tests exercise HTTPS/SSH cloning and
-preservation of existing JS checkouts alongside the other repositories.
-Both Full scenarios fetch and record its clean checkout identity; the quality
-gate rejects missing, dirty, foreign or mismatched JS source evidence.
+The reviewed combination uses JS `72338d82`, cleaned Core `1043bdcc` and
+Docs `3696ae35`. The CLI, Lua, Python, Rust and Go pins match that portal's
+reviewed sources, so sibling and remote documentation cover the same seven
+component revisions. The [manifest](../integration.json) records full SHAs.
 
-This pin contains only README, license, changelog and migration metadata.
-There is no JS runtime smoke, JS Core dependency receipt, Emscripten/Node tool
-requirement or JS portal source in the workspace gate yet. A passing checkout
-check does not establish WASM build, API, browser/worker or release readiness.
-The six existing portal sources and existing component smoke tests are unchanged.
+Both Full scenarios build JS in a fresh Emscripten 4.0.10 Release directory and
+run its existing Node 22 smoke and parse example. Sibling mode explicitly passes
+`FETCHCONTENT_SOURCE_DIR_OPENTLV_CORE`; remote mode leaves selection to JS's
+immutable `cmake/core-source.json` lock. The component verifier checks the
+configure-time receipt again after the build. Workspace checks the receipt's
+mode, source path, pin and effective Git identity, verifies that compiler commands
+include the selected Core, and requires runtime output in the aggregate gate.
 
-[Workspace #42](https://github.com/OpenTLV/opentlv-workspace/issues/42) remains
-open for final build verification after
-[JS #8](https://github.com/OpenTLV/opentlv-js/issues/8) and
-[JS #9](https://github.com/OpenTLV/opentlv-js/issues/9) provide the implementation
-and standalone build. At that handoff:
+The portal smoke includes JavaScript alongside Core, CLI, Lua, Python, Rust and
+Go, requiring all seven sources and their provenance. Missing runtime, dependency,
+tool or documentation evidence fails Full and the Workspace Release gate.
 
-1. Select a reviewed immutable JS revision containing the standalone build.
-2. Document and use its actual explicit sibling Core override; verify its
-   pinned dependency when the override is absent. Keep dependency setup in JS.
-3. Add bounded build/load/example smoke in both workspace scenarios and require
-   effective Core provenance. Run the final hosted integration checks.
-4. Keep full Query, ABI, browser/worker, reproducibility and behavioral suites
-   with JS/Core; coordinate portal registration with
-   [Docs #93](https://github.com/OpenTLV/opentlv-docs/issues/93).
+JS retains the full Query facade, ABI, private-package and reproducibility
+suites; Core retains native behavior tests. This workspace smoke does not claim
+browser/worker execution, npm publication or a component release. Python remains
+checkout/documentation-only; Rust continues to use its lock in both scenarios.
 
-The [local development instructions](../README.md#javascript--wasm-and-local-core-development)
-describe the currently available Core-hosted workflow without inventing a
-standalone override or treating workspace registration as extraction completion.
+[Workspace #42](https://github.com/OpenTLV/opentlv-workspace/issues/42) and
+[JS #14](https://github.com/OpenTLV/opentlv-js/issues/14) require a successful
+hosted Full on this updated workspace candidate, including sibling, remote and
+the aggregate gate. Local tests do not substitute for that hosted result.
+
+### Recorded component gates (2026-10-26)
+
+- [JS Full 40286001376](https://github.com/OpenTLV/opentlv-js/actions/runs/40286001376),
+  attempt 1, JS `72338d82`: Release, Debug and aggregate passed.
+- [JS Release rehearsal 40293858977](https://github.com/OpenTLV/opentlv-js/actions/runs/40293858977),
+  attempt 1, the same JS revision: reproducibility, migration comparison and
+  aggregate passed. Dispatched as `marekcingel`; no tag or package publication.
+- [Core Full 40286043869](https://github.com/OpenTLV/opentlv/actions/runs/40286043869),
+  attempt 1, cleaned Core `1043bdcc`: all 43 jobs passed, including Memcheck
+  and Core quality gate.
+- [Docs Main 40285512361](https://github.com/OpenTLV/opentlv-docs/actions/runs/40285512361)
+  passed for the selected portal `3696ae35` after merging its Lua navigation fix.
+
+These results update the dated component review in JS `MIGRATION.md`. Final
+Workspace acceptance still requires a successful hosted Full on this candidate;
+component gates alone do not establish that cross-repository result.
 
 ### Go migration handoff
 
@@ -151,14 +165,14 @@ The runner verifies the resulting receipt against Git identity and actual native
 compiler commands. The Full/Release gate requires Go output, checkout and Core
 provenance in both scenarios; it rejects missing or mismatched evidence.
 
-The final migration combination selects Go `c6af85d`, cleaned Core `a9a6f94`,
+The earlier Go migration combination selected Go `c6af85d`, cleaned Core `a9a6f94`,
 Lua `25d8783` and Docs `996628b`. Go uses its canonical standalone module and independent
 binding version. Its native Core lock remains the original `cb3caed5` baseline;
 sibling mode separately checks compatibility with cleaned Core. Workspace smoke
 does not duplicate Go's behavioral suite or add `go.work`, cgo settings or
 automatic sibling detection.
 
-The portal smoke now requires all six sources (Core, CLI, Lua, Python, Rust and
+The Go migration portal smoke required all six sources (Core, CLI, Lua, Python, Rust and
 Go), verifies explicit sibling paths, and rejects missing, duplicate, omitted,
 dirty or mismatched source evidence. Remote documentation uses the portal's own
 immutable pins; its Go source is `8c62688`, whose runtime sources and native build

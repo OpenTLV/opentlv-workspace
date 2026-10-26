@@ -4,7 +4,7 @@
     "core": {
       "directory": "opentlv",
       "repository": "https://github.com/OpenTLV/opentlv.git",
-      "revision": "a9a6f9470c2b285744738b40196bef9d0341fead"
+      "revision": "1043bdccb0b5d3b519c5dd05cfc69bcdab511530"
     },
     "cli": {
       "directory": "opentlv-cli",
@@ -14,7 +14,7 @@
     "lua": {
       "directory": "opentlv-lua",
       "repository": "https://github.com/OpenTLV/opentlv-lua.git",
-      "revision": "25d8783f1ef0def6c8790c7060a756fab635d3e4"
+      "revision": "e2b65d515852748b80d1e4506c4b3a306d30a2f4"
     },
     "python": {
       "directory": "opentlv-python",
@@ -24,22 +24,22 @@
     "rust": {
       "directory": "opentlv-rust",
       "repository": "https://github.com/OpenTLV/opentlv-rust.git",
-      "revision": "d4ba3ff27ff2a0a5934bdc9cb4bf54019c2274bc"
+      "revision": "ee2d1f4eae24321f9dbd62d35fdeaf79e344bfbe"
     },
     "go": {
       "directory": "opentlv-go",
       "repository": "https://github.com/OpenTLV/opentlv-go.git",
-      "revision": "c6af85d2c11cfc6c98897398b2ec3b6e5335a491"
+      "revision": "bc73a5100ef6109e8e5634add62785eb21352254"
     },
     "js": {
       "directory": "opentlv-js",
       "repository": "https://github.com/OpenTLV/opentlv-js.git",
-      "revision": "0e71aa6da491397b6c6dec2c258dff0bf65bab44"
+      "revision": "72338d82aad22c1620b75e0f8f190de11982a74a"
     },
     "docs": {
       "directory": "opentlv-docs",
       "repository": "https://github.com/OpenTLV/opentlv-docs.git",
-      "revision": "996628be4afe014c3245ff571b1d5140fa79a56d"
+      "revision": "3696ae35c31e1865524e33cc045026137fe9a196"
     }
   }
 }

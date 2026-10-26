@@ -36,12 +36,13 @@ def fixture():
             "schema": 2, "status": "passed", "mode": mode, "execution": copy.deepcopy(ctx),
             "local_development": False, "workspace_dirty": False, "workspace_commit": ctx["sha"],
             "manifest_sha256": locked["manifest_sha256"],
-            "checks": dict.fromkeys(("cli", "lua", "rust", "go", "documentation"), "passed"),
+            "checks": dict.fromkeys(("cli", "lua", "rust", "go", "js", "documentation"), "passed"),
             "steps": [{"returncode": 0}], "seconds": 1.0,
             "cli_version": "otlv fixture", "lua_version": "Lua fixture",
             "rust_output": "Hello, world!",
             "go_output": "Hello, world!",
-            "tools": dict.fromkeys(("git", "cmake", "ninja", "lua", "cargo", "rustc", "go"), "fixture"),
+            "js_output": "smoke passed; tag=6F",
+            "tools": dict.fromkeys(("git", "cmake", "ninja", "lua", "cargo", "rustc", "go", "emcc", "node"), "fixture"),
             "sources": {key: {"repository": item["repository"], "commit": item["revision"],
                               "configured_revision": item["revision"], "dirty": False}
                         for key, item in repos.items() if mode == "sibling" or key != "core"},
@@ -49,7 +50,7 @@ def fixture():
                 key: {"repository": repos["core"]["repository"], "mode": mode,
                       "declared_pin": "c" * 40, "dirty": False,
                       "commit": repos["core"]["revision"] if mode == "sibling" else "c" * 40}
-                for key in ("cli", "lua", "go")} | {
+                for key in ("cli", "lua", "go", "js")} | {
                 "rust": {"repository": repos["core"]["repository"], "mode": mode,
                          "declared_pin": "e" * 40, "dirty": False, "commit": "e" * 40}},
             "documentation": {"sources": [
@@ -141,7 +142,7 @@ class EvidenceTests(unittest.TestCase):
                     quality.validate_report(report, mode, self.locked)
 
     def test_scaffold_runtime_success_is_not_part_of_checkout_coverage(self):
-        for key in ("python", "js"):
+        for key in ("python",):
             for mode in ("sibling", "remote"):
                 for section in ("checks", "core_dependencies"):
                     report = copy.deepcopy(self.evidence["reports"][mode])
@@ -158,6 +159,25 @@ class EvidenceTests(unittest.TestCase):
                 report = copy.deepcopy(self.evidence["reports"][mode])
                 report["sources"]["js"][field] = value
                 with self.subTest(mode=mode, field=field), self.assertRaises(ValueError):
+                    quality.validate_report(report, mode, self.locked)
+
+    def test_js_runtime_dependency_and_tools_are_required(self):
+        for mode in ("sibling", "remote"):
+            for change in ("check", "dependency", "commit", "dirty", "output", "emcc", "node"):
+                report = copy.deepcopy(self.evidence["reports"][mode])
+                if change == "check":
+                    del report["checks"]["js"]
+                elif change == "dependency":
+                    del report["core_dependencies"]["js"]
+                elif change == "commit":
+                    report["core_dependencies"]["js"]["commit"] = "f" * 40
+                elif change == "dirty":
+                    report["core_dependencies"]["js"]["dirty"] = True
+                elif change == "output":
+                    report["js_output"] = " "
+                else:
+                    del report["tools"][change]
+                with self.subTest(mode=mode, change=change), self.assertRaises(ValueError):
                     quality.validate_report(report, mode, self.locked)
 
     def test_go_checkout_identity_required_in_both_scenarios(self):

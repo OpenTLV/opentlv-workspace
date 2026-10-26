@@ -6,7 +6,7 @@ This repository provides the shared editor configuration and workspace documenta
 
 ## Overview
 
-The workspace opens nine repositories: `opentlv-workspace`, `opentlv`, `opentlv-docs`, `opentlv-cli`, `opentlv-lua`, `opentlv-python`, `opentlv-rust`, `opentlv-go`, and `opentlv-js`. Core owns the C core, C++ API and its in-tree bindings. The standalone CLI, Lua, Python and Rust repositories own their implementations, tests, packaging and technical documentation. The Go migration preserves the existing binding in a standalone module with explicit Core selection. JS currently contains WASM migration metadata; the working WASM implementation remains in Core. The Docs repository owns portal navigation, introductions, assembly and publication; assembling technical sources does not transfer their component ownership.
+The workspace opens nine repositories: `opentlv-workspace`, `opentlv`, `opentlv-docs`, `opentlv-cli`, `opentlv-lua`, `opentlv-python`, `opentlv-rust`, `opentlv-go`, and `opentlv-js`. Core owns the C core, C++ API and its in-tree bindings. The standalone CLI, Lua, Python and Rust repositories own their implementations, tests, packaging and technical documentation. The Go migration preserves the existing binding in a standalone module with explicit Core selection. The JavaScript repository owns its standalone Emscripten build, bridge, wrappers, tests and examples. The Docs repository owns portal navigation, introductions, assembly and publication; assembling technical sources does not transfer their component ownership.
 
 The workspace uses native Visual Studio Code functionality to work with multiple repositories in a single editor window.
 
@@ -98,7 +98,7 @@ The roots in `opentlv.code-workspace` use paths relative to the workspace reposi
 | `opentlv-python` | `../opentlv-python` | `opentlv-python` | Standalone Python binding, tests, packaging and documentation |
 | `opentlv-rust` | `../opentlv-rust` | `opentlv-rust` | Standalone Rust crates, tests, packaging and documentation |
 | `opentlv-go` | `../opentlv-go` | `opentlv-go` | Standalone Go binding, cgo bridge, tests and examples |
-| `opentlv-js` | `../opentlv-js` | `opentlv-js` | WASM/JavaScript migration metadata; standalone build pending |
+| `opentlv-js` | `../opentlv-js` | `opentlv-js` | Standalone JavaScript binding, Emscripten build, tests and examples |
 
 The [Core repository guide](https://github.com/OpenTLV/opentlv) describes Core and links its technical documentation. Standalone CLI, Lua, Python and Rust select Core through their own build systems; opening sibling checkouts does not select a dependency.
 
@@ -141,28 +141,23 @@ The first command uses Go's immutable `core-source.json` dependency; the second 
 
 The workspace supplies no `go.work`, cgo flags or library paths. Go remains buildable outside this workspace. See the [migration handoff](docs/integration.md#go-migration-handoff) for the required immutable Go pin before hosted Full validation.
 
-### JavaScript / WASM and Local Core Development
+### JavaScript and Local Core Development
 
-Keep `opentlv-js` and `opentlv` as sibling checkouts. The local Core path from
-`opentlv-js` is `../opentlv`; opening both roots does not select a dependency or
-configure Emscripten. Bootstrap preserves existing branches and local changes.
+The [JavaScript build guide](https://github.com/OpenTLV/opentlv-js#standalone-build)
+owns the Emscripten 4.0.10 / Node 22 toolchain and Core dependency contract.
+From `opentlv-js`, configure a fresh build directory:
 
-The pinned JS revision currently contains migration metadata only. There is no
-standalone JS build command or supported Core override flag yet. For current
-WASM development, build the implementation inside the Core checkout using its
-[WebAssembly guide](https://github.com/OpenTLV/opentlv/blob/a9a6f9470c2b285744738b40196bef9d0341fead/docs/development/webassembly.md).
-That builds the selected Core tree; it is not a standalone JS override.
+```sh
+emcmake cmake -S . -B build/sibling -G Ninja -DCMAKE_BUILD_TYPE=Release -DFETCHCONTENT_SOURCE_DIR_OPENTLV_CORE="$PWD/../opentlv"
+cmake --build build/sibling --parallel 2
+ctest --test-dir build/sibling --output-on-failure
+```
 
-Follow the [JS repository status](https://github.com/OpenTLV/opentlv-js) and
-[migration contract](https://github.com/OpenTLV/opentlv-js/blob/0e71aa6da491397b6c6dec2c258dff0bf65bab44/MIGRATION.md).
-Source transfer is tracked in [JS #8](https://github.com/OpenTLV/opentlv-js/issues/8)
-and the standalone build with explicit sibling Core selection in
-[JS #9](https://github.com/OpenTLV/opentlv-js/issues/9). Once available, use that
-component-owned override explicitly for `../opentlv`, and its pinned dependency
-without the override for standalone development. The workspace supplies no npm
-configuration, Emscripten environment, library paths or automatic Core selection.
-See the [WASM migration handoff](docs/integration.md#wasm-migration-handoff) for
-the remaining final build verification under #42.
+Omit the override and use another fresh build directory for the independently
+pinned Core. The JS build verifies its source lock or records the explicit local
+selection in `core-selection.json`. Opening the workspace does not select Core.
+See the [JavaScript migration handoff](docs/integration.md#javascript-migration-handoff)
+for the exact integration pins and the bounded runtime/Docs checks.
 
 ## Development Documentation
 
@@ -175,7 +170,7 @@ Use each owner's documentation for current prerequisites, build commands, suppor
 - [Rust development](https://github.com/OpenTLV/opentlv-rust/blob/main/docs/development/rust.md), [usage](https://github.com/OpenTLV/opentlv-rust/blob/main/docs/guides/rust.md) and [quality gates](https://github.com/OpenTLV/opentlv-rust/blob/main/docs/quality-gates.md): standalone Rust setup, usage and CI.
 - [Docs repository](https://github.com/OpenTLV/opentlv-docs): portal builds, tests and publication.
 - [Go development](https://github.com/OpenTLV/opentlv-go/blob/main/docs/development/go.md), [usage](https://github.com/OpenTLV/opentlv-go/blob/main/docs/guides/go.md) and [migration contract](https://github.com/OpenTLV/opentlv-go/blob/main/MIGRATION.md): standalone setup, explicit Core override and source provenance.
-- [JS repository](https://github.com/OpenTLV/opentlv-js): current WASM migration status and future standalone build/dependency contract; see the [current local workflow](#javascript--wasm-and-local-core-development).
+- [JS repository](https://github.com/OpenTLV/opentlv-js): standalone build/dependency contract and migration evidence; see the [local workflow](#javascript-and-local-core-development).
 
 For changes to this workspace repository, see [CONTRIBUTING.md](CONTRIBUTING.md).
 
@@ -183,7 +178,7 @@ Optional contributor tooling is described in [Pre-commit Checks](CONTRIBUTING.md
 
 ## Workspace Integration CI
 
-Four workflows separate PR validation, lightweight Main smoke, manual Full integration and a manual Release Gate. PR checks configuration, formatting, offline bootstrap and orchestration without building components. Main checks configuration and bootstrap on Linux. Full builds CLI and Lua against sibling and remote Core revisions, builds and runs the Rust quick start against Rust's own locked Core in both scenarios, and checks portal assembly/navigation. Go builds its standalone module and runs its quick start using an explicit sibling Core in sibling mode and its own immutable Core pin in remote mode. Python has checkout and documentation coverage. JS has checkout coverage only at its migration bootstrap pin; standalone WASM smoke remains pending. Release reruns Full on the exact dispatch commit before publishing an attested integration snapshot; component releases remain independent.
+Four workflows separate PR validation, lightweight Main smoke, manual Full integration and a manual Release Gate. PR checks configuration, formatting, offline bootstrap and orchestration without building components. Main checks configuration and bootstrap on Linux. Full builds CLI and Lua against sibling and remote Core revisions, builds and runs the Rust quick start against Rust's own locked Core in both scenarios, and checks portal assembly/navigation. Go builds its standalone module and runs its quick start using an explicit sibling Core in sibling mode and its own immutable Core pin in remote mode. Python has checkout and documentation coverage. JS builds with Emscripten 4.0.10 and Node 22, runs its smoke and parse example against explicit sibling or pinned Core, and participates in portal assembly. Release reruns Full on the exact dispatch commit before publishing an attested integration snapshot; component releases remain independent.
 
 [integration.json](integration.json) pins the repository combination used by CI; it does not select component release versions or change bootstrap behavior. See [integration quality gates](docs/integration.md) for supported configurations, local commands, revision evidence, the required merge check and performance measurements.
 
