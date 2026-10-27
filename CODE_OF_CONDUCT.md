@@ -120,7 +120,7 @@ the community.
 ## Attribution
 
 This Code of Conduct is adapted from the [Contributor Covenant][homepage],
-version 2.1, available at
+version 2.1, licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/), available at
 <https://www.contributor-covenant.org/version/2/1/code_of_conduct.html>.
 
 Community Impact Guidelines were inspired by

@@ -14,7 +14,6 @@ path = [
     ".github/ISSUE_TEMPLATE/config.yml",
     ".github/PULL_REQUEST_TEMPLATE.md",
     "CHANGELOG.md",
-    "CODE_OF_CONDUCT.md",
     "CONTRIBUTING.md",
     "README.md",
     "SECURITY.md",
@@ -27,3 +26,9 @@ path = [
 precedence = "aggregate"
 SPDX-FileCopyrightText = "2026 Marek Cingel"
 SPDX-License-Identifier = "MIT"
+
+[[annotations]]
+path = ["CODE_OF_CONDUCT.md"]
+precedence = "aggregate"
+SPDX-FileCopyrightText = ["Coraline Ada Ehmke and Contributor Covenant contributors", "2026 Marek Cingel (OpenTLV adaptations)"]
+SPDX-License-Identifier = "CC-BY-4.0"

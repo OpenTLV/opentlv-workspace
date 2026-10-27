@@ -1,1 +1,8 @@
 blank_issues_enabled: true
+contact_links:
+  - name: Report a security vulnerability privately
+    url: https://github.com/OpenTLV/opentlv-workspace/security/advisories/new
+    about: Use the private reporting form; never disclose vulnerabilities in public issues.
+  - name: OpenTLV support
+    url: https://github.com/OpenTLV/.github/blob/main/SUPPORT.md
+    about: Find the repository responsible for your component.

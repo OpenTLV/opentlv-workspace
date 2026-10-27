@@ -111,31 +111,27 @@ can pass. Standalone Full can run on a candidate branch.
 
 ### Community repository bootstrap
 
-The `community` entry pins the public `OpenTLV/.github` repository to its initial
-commit `ae27542e44cdb000c8ac52d0f350d7e8f7b8a62e`. Its directory is `.github`:
-the editor and bootstrap use `../.github`, separate from the workspace's own
+The `community` entry pins public `OpenTLV/.github` commit
+`06f80287bf6136ee962460459b057c959aa1313e`, containing the corrected MIT
+attribution, separately licensed Contributor Covenant and shared community policies.
+The editor and bootstrap use `../.github`, separate from this repository's own
 `.github/` configuration. Fresh integration checkouts use `sources/.github`.
 Both Full scenarios require its clean checkout at the configured SHA and record
-its origin and commit in `sources.community`. Missing, dirty or mismatched
-community evidence fails the existing aggregate validation.
+its origin and commit in `sources.community`; missing, dirty or mismatched evidence
+fails aggregate validation.
 
-This repository has checkout/provenance coverage only. It is not a Core consumer
-or one of the seven portal documentation sources, and adds no runtime checks,
-workflows or jobs. Existing workspace REUSE configuration remains local and
-unchanged.
+This repository has checkout/provenance coverage only, with no runtime smoke,
+Core dependency or portal source. The pin implements the published-policy handoff
+from [#47](https://github.com/OpenTLV/opentlv-workspace/issues/47) and
+[#48](https://github.com/OpenTLV/opentlv-workspace/issues/48). GitHub displays
+community defaults from the public default branch, independently of this pin.
+Local policies override defaults: Workspace retains its technical contribution
+instructions and supported revision, with explicit links to the shared guidance
+and private reporting forms. Its local issue chooser also links security and support.
 
-The initial public commit contains only README and LICENSE. Its LICENSE still
-names `OpenTLV` as copyright holder; that attribution needs correction to Marek
-Cingel for his original contributions, preserving other owners' notices. After
-the correction is published, review and advance the community pin to that exact
-commit. The initial pin establishes reproducible checkout coverage, not completed
-licensing normalization or active community defaults.
-
-[Workspace #48](https://github.com/OpenTLV/opentlv-workspace/issues/48) owns the
-shared community and security defaults after this bootstrap. LICENSE, SPDX/REUSE,
-build instructions, workflows and private vulnerability reporting settings remain
+LICENSE, SPDX/REUSE, build instructions, CI and private reporting settings stay
 repository-specific. Pin updates follow the same review and Full evidence process
-as other entries in the manifest.
+as other entries; a local checkout check does not establish hosted Full coverage.
 
 ### JavaScript migration handoff
 

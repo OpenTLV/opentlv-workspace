@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Use the published community-policy pin, link shared guidance and private reporting from local policies and the issue chooser, and preserve Contributor Covenant attribution under CC BY 4.0. (#47, #48)
+- Validate license metadata without automatically assigning Marek Cingel copyright to other contributors. (#21, #48, OpenTLV/opentlv#703)
 - Complete JavaScript runtime and seven-source Docs integration in sibling/remote Full checks, verify effective Core receipts and compiler inputs, install Emscripten 4.0.10/Node 22, and align immutable pins with the reviewed portal source set. (#42, OpenTLV/opentlv-js#14, OpenTLV/opentlv#696)
 - Align the Lua integration pin with the portal's manuals to restore `lua/quality-gates.md` in sibling assembly, and select the Go repair verified by hosted Full CI. (OpenTLV/opentlv-go#7, OpenTLV/opentlv#684)
 - Advance Go, cleaned Core and Docs integration pins for the final Go migration review; select Python manuals and verify all six portal sources in both Full scenarios without adding component test suites. (OpenTLV/opentlv-go#7, OpenTLV/opentlv#684)

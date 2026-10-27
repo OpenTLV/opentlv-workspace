@@ -9,8 +9,8 @@ of credentials, or insecure handling of untrusted workspace content.
 
 Vulnerabilities in OpenTLV Core, language bindings, or other components
 should be reported according to the security policy of the repository that
-owns the component. For OpenTLV Core and the bindings currently included
-with it, follow the [OpenTLV security policy](https://github.com/OpenTLV/opentlv/blob/main/SECURITY.md).
+owns the component. The [shared security policy](https://github.com/OpenTLV/.github/blob/main/SECURITY.md)
+describes component ownership and cross-repository coordination.
 
 ## Supported Revision
 
@@ -23,9 +23,12 @@ This policy does not define support for releases of OpenTLV components.
 **Please do not disclose vulnerabilities through public GitHub issues,
 discussions, or pull requests.**
 
-Report suspected vulnerabilities privately to the responsible maintainer,
-Marek Cingel, through the contact information on
-<https://github.com/marekcingel>. Mark the report as security-sensitive.
+Use the [private Workspace reporting form](https://github.com/OpenTLV/opentlv-workspace/security/advisories/new).
+If several repositories are affected, ownership is unclear, or that form is
+unavailable, use the [OpenTLV coordination report](https://github.com/OpenTLV/.github/security/advisories/new).
+Follow the [shared security policy](https://github.com/OpenTLV/.github/blob/main/SECURITY.md)
+for triage, coordinated disclosure and the fallback contact procedure. These
+forms require GitHub sign-in. The supported revision above remains Workspace-specific.
 
 ### What to Include
 

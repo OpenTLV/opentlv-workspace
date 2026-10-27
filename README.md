@@ -113,8 +113,8 @@ The public [OpenTLV/.github](https://github.com/OpenTLV/.github) checkout lives 
 Bootstrap clones the default branch for development, while integration CI uses
 the exact `community` revision in [integration.json](integration.json).
 
-The initial pin bootstraps the repository with README and LICENSE only. Shared
-contribution guidance, Code of Conduct, security policy and templates follow in
+The reviewed pin includes corrected attribution and the shared contribution,
+conduct, security and support policies and templates delivered in
 [#48](https://github.com/OpenTLV/opentlv-workspace/issues/48). Repository-local
 community files take precedence over organization defaults. Each repository
 retains its own LICENSE, SPDX/REUSE metadata, build/test instructions and CI;
@@ -228,4 +228,7 @@ It describes community standards and how to report unacceptable behavior private
 
 ## License
 
-This repository is licensed under the MIT License. See [LICENSE](LICENSE) for details.
+Original project files are licensed under MIT; see [LICENSE](LICENSE).
+The adapted Contributor Covenant in [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)
+retains its authors and CC BY 4.0 license. Other contributors retain their own
+copyright; automated checks do not assign it to the original author.
