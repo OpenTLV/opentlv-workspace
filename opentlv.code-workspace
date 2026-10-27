@@ -35,6 +35,10 @@
 		{
 			"path": "../opentlv-js",
 			"name": "opentlv-js"
+		},
+		{
+			"path": "../.github",
+			"name": ".github"
 		}
 	],
 	"settings": {}

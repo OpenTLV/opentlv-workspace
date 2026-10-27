@@ -34,6 +34,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Add public `OpenTLV/.github` as a sibling workspace root with HTTPS/SSH bootstrap, an immutable integration pin and checkout provenance in both Full scenarios; document community-policy ownership without adding CI or changing local REUSE configuration. (#47)
 - Add `opentlv-js` to the VS Code workspace, HTTPS/SSH bootstrap and pinned checkout validation, with documented sibling Core layout and migration-stage limits; standalone WASM build verification follows when its component-owned build is available. (#42)
 - Add `opentlv-go` to the workspace, HTTPS/SSH bootstrap and pinned checkout validation. Build and run the standalone Go quick start with explicit sibling Core selection or its immutable remote Core pin, validate effective dependency evidence and document the prerequisite Go source-pin handoff. (#40)
 - Add `opentlv-rust` to the workspace, HTTPS/SSH bootstrap and pinned checkout validation, with documented sibling Core layout and Rust development kept in Core until migration. (#37)

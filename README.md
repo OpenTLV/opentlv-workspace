@@ -2,11 +2,11 @@
 
 Official Visual Studio Code multi-root workspace for developing the OpenTLV ecosystem.
 
-This repository provides the shared editor configuration and workspace documentation for working with the `opentlv`, `opentlv-cli`, `opentlv-lua`, `opentlv-python`, `opentlv-rust`, `opentlv-go`, `opentlv-js`, and `opentlv-docs` repositories.
+This repository provides the shared editor configuration and workspace documentation for working with the `opentlv`, `opentlv-cli`, `opentlv-lua`, `opentlv-python`, `opentlv-rust`, `opentlv-go`, `opentlv-js`, `opentlv-docs`, and `.github` repositories.
 
 ## Overview
 
-The workspace opens nine repositories: `opentlv-workspace`, `opentlv`, `opentlv-docs`, `opentlv-cli`, `opentlv-lua`, `opentlv-python`, `opentlv-rust`, `opentlv-go`, and `opentlv-js`. Core owns the C core, C++ API and its in-tree bindings. The standalone CLI, Lua, Python and Rust repositories own their implementations, tests, packaging and technical documentation. The Go migration preserves the existing binding in a standalone module with explicit Core selection. The JavaScript repository owns its standalone Emscripten build, bridge, wrappers, tests and examples. The Docs repository owns portal navigation, introductions, assembly and publication; assembling technical sources does not transfer their component ownership.
+The workspace opens ten repositories: `opentlv-workspace`, `opentlv`, `opentlv-docs`, `opentlv-cli`, `opentlv-lua`, `opentlv-python`, `opentlv-rust`, `opentlv-go`, `opentlv-js`, and `.github`. Core owns the C core, C++ API and its in-tree bindings. The standalone CLI, Lua, Python and Rust repositories own their implementations, tests, packaging and technical documentation. The Go migration preserves the existing binding in a standalone module with explicit Core selection. The JavaScript repository owns its standalone Emscripten build, bridge, wrappers, tests and examples. The Docs repository owns portal navigation, introductions, assembly and publication; assembling technical sources does not transfer their component ownership. The public `.github` repository is the home for organization-wide community defaults.
 
 The workspace uses native Visual Studio Code functionality to work with multiple repositories in a single editor window.
 
@@ -30,7 +30,7 @@ git clone https://github.com/OpenTLV/opentlv-workspace.git
 python opentlv-workspace/scripts/bootstrap.py
 ```
 
-The script clones the missing `OpenTLV/opentlv`, `OpenTLV/opentlv-docs`, `OpenTLV/opentlv-cli`, `OpenTLV/opentlv-lua`, `OpenTLV/opentlv-python`, `OpenTLV/opentlv-rust`, `OpenTLV/opentlv-go`, and `OpenTLV/opentlv-js` repositories next to `opentlv-workspace` using HTTPS by default. To use SSH instead, with GitHub SSH access configured:
+The script clones the missing `OpenTLV/opentlv`, `OpenTLV/opentlv-docs`, `OpenTLV/opentlv-cli`, `OpenTLV/opentlv-lua`, `OpenTLV/opentlv-python`, `OpenTLV/opentlv-rust`, `OpenTLV/opentlv-go`, `OpenTLV/opentlv-js`, and `OpenTLV/.github` repositories next to `opentlv-workspace` using HTTPS by default. To use SSH instead, with GitHub SSH access configured:
 
 ```bash
 python opentlv-workspace/scripts/bootstrap.py --protocol ssh
@@ -58,6 +58,7 @@ git clone git@github.com:OpenTLV/opentlv-python.git
 git clone git@github.com:OpenTLV/opentlv-rust.git
 git clone git@github.com:OpenTLV/opentlv-go.git
 git clone git@github.com:OpenTLV/opentlv-js.git
+git clone git@github.com:OpenTLV/.github.git
 ```
 
 These clone commands use SSH and require GitHub SSH access. If you already have a parent directory for OpenTLV checkouts, use it instead of creating a new one.
@@ -74,6 +75,7 @@ OpenTLV/
 â”œâ”€â”€ opentlv-rust/
 â”œâ”€â”€ opentlv-go/
 â”œâ”€â”€ opentlv-js/
+â”œâ”€â”€ .github/
 â””â”€â”€ opentlv-workspace/
     â””â”€â”€ opentlv.code-workspace
 ```
@@ -99,8 +101,30 @@ The roots in `opentlv.code-workspace` use paths relative to the workspace reposi
 | `opentlv-rust` | `../opentlv-rust` | `opentlv-rust` | Standalone Rust crates, tests, packaging and documentation |
 | `opentlv-go` | `../opentlv-go` | `opentlv-go` | Standalone Go binding, cgo bridge, tests and examples |
 | `opentlv-js` | `../opentlv-js` | `opentlv-js` | Standalone JavaScript binding, Emscripten build, tests and examples |
+| `.github` | `../.github` | `.github` | Organization-wide community defaults |
 
 The [Core repository guide](https://github.com/OpenTLV/opentlv) describes Core and links its technical documentation. Standalone CLI, Lua, Python and Rust select Core through their own build systems; opening sibling checkouts does not select a dependency.
+
+### Community Repository
+
+The public [OpenTLV/.github](https://github.com/OpenTLV/.github) checkout lives at
+`../.github`, alongside `opentlv-workspace`. It is a separate Git repository;
+`opentlv-workspace/.github/` still holds this repository's workflows and templates.
+Bootstrap clones the default branch for development, while integration CI uses
+the exact `community` revision in [integration.json](integration.json).
+
+The initial pin bootstraps the repository with README and LICENSE only. Shared
+contribution guidance, Code of Conduct, security policy and templates follow in
+[#48](https://github.com/OpenTLV/opentlv-workspace/issues/48). Repository-local
+community files take precedence over organization defaults. Each repository
+retains its own LICENSE, SPDX/REUSE metadata, build/test instructions and CI;
+these are not distributed through community defaults. Marek Cingel retains
+copyright in his original contributions, and contributor and third-party notices
+must be preserved. OpenTLV is the GitHub organization, not a legal copyright holder.
+
+Both Full scenarios record the community checkout identity. It has no runtime
+smoke, Core dependency or portal source. See the
+[bootstrap pin and handoff](docs/integration.md#community-repository-bootstrap).
 
 ### Lua and Local Core Development
 
@@ -187,7 +211,7 @@ Maintainers review pins at least monthly and after relevant upstream changes thr
 ## Development Principles
 
 - Use native VS Code multi-root workspace functionality.
-- Keep `opentlv`, `opentlv-cli`, `opentlv-lua`, `opentlv-python`, `opentlv-rust`, `opentlv-go`, `opentlv-js`, and `opentlv-docs` independent of the workspace repository.
+- Keep `opentlv`, `opentlv-cli`, `opentlv-lua`, `opentlv-python`, `opentlv-rust`, `opentlv-go`, `opentlv-js`, `opentlv-docs`, and `.github` independent of the workspace repository.
 - Use the build and package tools documented by each component owner.
 - Keep build, test, and release workflows with the components they serve.
 - Keep build artifacts and local configuration outside version control.

@@ -36,6 +36,11 @@
       "repository": "https://github.com/OpenTLV/opentlv-js.git",
       "revision": "72338d82aad22c1620b75e0f8f190de11982a74a"
     },
+    "community": {
+      "directory": ".github",
+      "repository": "https://github.com/OpenTLV/.github.git",
+      "revision": "ae27542e44cdb000c8ac52d0f350d7e8f7b8a62e"
+    },
     "docs": {
       "directory": "opentlv-docs",
       "repository": "https://github.com/OpenTLV/opentlv-docs.git",

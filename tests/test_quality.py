@@ -134,7 +134,7 @@ class EvidenceTests(unittest.TestCase):
                 quality.validate_report(report, "sibling", self.locked)
 
     def test_standalone_checkouts_required_in_both_scenarios(self):
-        for key in ("python", "rust", "go", "js"):
+        for key in ("python", "rust", "go", "js", "community"):
             for mode in ("sibling", "remote"):
                 report = copy.deepcopy(self.evidence["reports"][mode])
                 del report["sources"][key]
@@ -142,7 +142,7 @@ class EvidenceTests(unittest.TestCase):
                     quality.validate_report(report, mode, self.locked)
 
     def test_scaffold_runtime_success_is_not_part_of_checkout_coverage(self):
-        for key in ("python",):
+        for key in ("python", "community"):
             for mode in ("sibling", "remote"):
                 for section in ("checks", "core_dependencies"):
                     report = copy.deepcopy(self.evidence["reports"][mode])
@@ -158,6 +158,16 @@ class EvidenceTests(unittest.TestCase):
                                  ("dirty", True)):
                 report = copy.deepcopy(self.evidence["reports"][mode])
                 report["sources"]["js"][field] = value
+                with self.subTest(mode=mode, field=field), self.assertRaises(ValueError):
+                    quality.validate_report(report, mode, self.locked)
+
+    def test_community_checkout_identity_required_in_both_scenarios(self):
+        for mode in ("sibling", "remote"):
+            for field, value in (("commit", "f" * 40), ("configured_revision", "f" * 40),
+                                 ("repository", "https://github.com/other/.github.git"),
+                                 ("dirty", True)):
+                report = copy.deepcopy(self.evidence["reports"][mode])
+                report["sources"]["community"][field] = value
                 with self.subTest(mode=mode, field=field), self.assertRaises(ValueError):
                     quality.validate_report(report, mode, self.locked)
 

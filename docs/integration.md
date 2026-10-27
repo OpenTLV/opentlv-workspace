@@ -30,8 +30,8 @@ configuration and setup behavior; it does not revalidate component compatibility
 
 ## Full CI and supported combinations
 
-[integration.json](../integration.json) identifies the exact Core, CLI, Lua, Python, Rust, Go, JS
-and portal revisions selected for integration CI. These are test inputs, not an
+[integration.json](../integration.json) identifies the exact Core, CLI, Lua, Python, Rust, Go, JS,
+portal and community repository revisions selected for integration CI. These are test inputs, not an
 ecosystem release version or a replacement for component dependency manifests.
 Update pins deliberately and validate both scenarios together.
 All seven component pins match the source revisions declared by the
@@ -108,6 +108,34 @@ manual dispatch or a reusable call from Release Gate. PR and Main workflows do
 not trigger Full, regardless of changed paths. Full locks the workspace commit
 and manifest, runs both scenarios and validates both reports before its gate
 can pass. Standalone Full can run on a candidate branch.
+
+### Community repository bootstrap
+
+The `community` entry pins the public `OpenTLV/.github` repository to its initial
+commit `ae27542e44cdb000c8ac52d0f350d7e8f7b8a62e`. Its directory is `.github`:
+the editor and bootstrap use `../.github`, separate from the workspace's own
+`.github/` configuration. Fresh integration checkouts use `sources/.github`.
+Both Full scenarios require its clean checkout at the configured SHA and record
+its origin and commit in `sources.community`. Missing, dirty or mismatched
+community evidence fails the existing aggregate validation.
+
+This repository has checkout/provenance coverage only. It is not a Core consumer
+or one of the seven portal documentation sources, and adds no runtime checks,
+workflows or jobs. Existing workspace REUSE configuration remains local and
+unchanged.
+
+The initial public commit contains only README and LICENSE. Its LICENSE still
+names `OpenTLV` as copyright holder; that attribution needs correction to Marek
+Cingel for his original contributions, preserving other owners' notices. After
+the correction is published, review and advance the community pin to that exact
+commit. The initial pin establishes reproducible checkout coverage, not completed
+licensing normalization or active community defaults.
+
+[Workspace #48](https://github.com/OpenTLV/opentlv-workspace/issues/48) owns the
+shared community and security defaults after this bootstrap. LICENSE, SPDX/REUSE,
+build instructions, workflows and private vulnerability reporting settings remain
+repository-specific. Pin updates follow the same review and Full evidence process
+as other entries in the manifest.
 
 ### JavaScript migration handoff
 
@@ -332,7 +360,7 @@ python -B scripts/integration.py full --mode sibling --source-root .. --work-dir
 
 This explicit mode accepts different HEADs and local changes, records configured
 and actual revisions plus dirty state, and marks the report `local_development`.
-All manifest repositories, including `opentlv-python` and `opentlv-rust`, must exist under
+All manifest repositories, including `opentlv-python`, `opentlv-rust` and `.github`, must exist under
 `--source-root`; bootstrap can create missing siblings.
 It never fetches, switches branches or writes build output into those siblings.
 Portal output is created from a disposable copy. A local-development report is
