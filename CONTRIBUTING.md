@@ -4,6 +4,10 @@ Thank you for your interest in contributing to OpenTLV.
 
 This repository maintains the shared Visual Studio Code development workspace for the OpenTLV ecosystem.
 
+Follow the [shared contribution guidelines](https://github.com/OpenTLV/.github/blob/main/CONTRIBUTING.md)
+and [support directory](https://github.com/OpenTLV/.github/blob/main/SUPPORT.md),
+together with the Workspace-specific instructions below.
+
 All project spaces, including issues, pull requests, and reviews, are governed by the [Code of Conduct](CODE_OF_CONDUCT.md).
 Follow its reporting instructions to report unacceptable behavior privately rather than opening a public issue.
 
@@ -55,6 +59,11 @@ Save text files with LF in your editor. Use `git ls-files --eol` to inspect trac
 ## Source License Headers
 
 Include an MIT SPDX identifier and copyright notice at the beginning of project source files, including scripts and tests. Use the comment syntax supported by the file's language.
+
+The examples describe Marek Cingel's original 2026 work. Use the actual author
+and year for other contributions; MIT contributions do not assign copyright.
+The pre-commit hook only checks metadata and never adds a fixed author's notice.
+Run `reuse annotate` manually only with the correct ownership and license.
 
 For Python, shell, or PowerShell:
 
@@ -119,23 +128,18 @@ Git is required. The first run downloads the pinned hook environments and may ta
 
 Checks use `pre-commit-hooks` and `markdownlint-cli` to cover whitespace, final newlines, YAML and JSON syntax, Python syntax, Markdown, and large files (500 KiB by default). Markdownlint uses `.markdownlint.json`. The JSON hook excludes `.code-workspace` files; Fast CI validates our workspace's strict JSON syntax, root paths and integration consistency separately.
 
-The local `reuse-annotate` hook first runs pinned `reuse annotate` on selected `.py` and `.pyi` files under `scripts/` and `tests/`, excluding third-party, generated, and binary fixture directories. It supplies MIT and `Copyright (c) 2026 Marek Cingel`, using [.reuse/templates/source-header.jinja2](.reuse/templates/source-header.jinja2) to place the SPDX identifier first. The year is pinned explicitly rather than taken from the current date. The hook can also reformat existing headers and add these notices alongside existing metadata; review the result and keep externally owned sources in the excluded directories. Repeated runs on the resulting headers do not add duplicates.
+The pinned REUSE hook runs the read-only `reuse lint` check across the repository,
+not just Python sources or staged files. It rejects missing metadata without
+rewriting headers or assigning an author. The hook environment and
+`requirements-dev.txt` include `charset-normalizer` for encoding detection on
+Windows without a separate libmagic installation.
 
-REUSE 6.2.0 preserves shebangs but can move a Python encoding declaration below the first two lines, where Python no longer recognizes it. Current workspace sources use UTF-8 without encoding declarations. Before introducing a source that requires such a declaration, add its path to the annotation hook's `exclude` expression and maintain its header manually; keep it covered by `reuse lint`.
-
-After annotation, the pinned REUSE hook runs the read-only `reuse lint` check described above across the repository, not just Python sources or staged files. The isolated hook environments and `requirements-dev.txt` include the `charset-normalizer` extra for encoding detection on Windows without a separate libmagic installation. When annotation modifies a file, pre-commit stops the commit: review the changes, stage them with `git add`, and retry. To run only the annotation hook, use `pre-commit run reuse-annotate --all-files`.
-
-Some hooks modify files to fix formatting. Review and stage the changes, then rerun the checks. Third-party and generated directories (`vendor/`, `third_party/`, `generated/`) are excluded from pre-commit's file selection, but not from REUSE's own whole-repository scan. They still need valid licensing metadata. Text-rewriting hooks additionally exclude identified binary files, `.bin`/`.dat` files, and `tests/fixtures/binary/`; extend these exclusions if new binary fixtures are added.
-
-Validate changes to the hook configuration with:
-
-```bash
-pre-commit validate-config
-pre-commit run --all-files
-reuse lint
-```
-
-Run the bootstrap tests separately after changing Python files. Record the operating systems actually tested. The large-file hook checks every selected file, including already committed files, so the size limit also applies in CI.
+Add accurate headers yourself or invoke `reuse annotate` explicitly with the
+actual author's name, year and license. The optional
+[header template](.reuse/templates/source-header.jinja2) places the SPDX identifier
+first. Review changes and preserve existing contributor and third-party notices.
+REUSE 6.2.0 can move Python encoding declarations below the first two lines;
+maintain such headers manually while keeping the files covered by `reuse lint`.
 
 ## Bootstrap Validation
 

@@ -39,7 +39,7 @@
     "community": {
       "directory": ".github",
       "repository": "https://github.com/OpenTLV/.github.git",
-      "revision": "ae27542e44cdb000c8ac52d0f350d7e8f7b8a62e"
+      "revision": "06f80287bf6136ee962460459b057c959aa1313e"
     },
     "docs": {
       "directory": "opentlv-docs",
