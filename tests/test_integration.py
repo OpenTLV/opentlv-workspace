@@ -20,7 +20,7 @@ import integration
 import docs_smoke
 
 # Components with checkout evidence but no runtime smoke (Python also has docs).
-CHECKOUT_ONLY = ("python",)
+CHECKOUT_ONLY = ("python", "community")
 # Standalone components with a sibling Core checkout in the editor layout.
 STANDALONE = ("python", "rust", "go", "js")
 
@@ -76,7 +76,7 @@ class ContractTests(unittest.TestCase):
 
     def test_reject_scaffold_checkout_configuration_drift(self):
         original = integration.load_manifest(self.root)
-        for key in STANDALONE:
+        for key in (*STANDALONE, "community"):
             for field, value in (("revision", "main"), ("directory", f"../../opentlv-{key}"),
                                  ("repository", f"https://github.com/other/opentlv-{key}.git")):
                 manifest = copy.deepcopy(original)
@@ -131,6 +131,8 @@ class ContractTests(unittest.TestCase):
                                      manifest["repositories"][key]["revision"])
                     self.assertNotIn(key, runner.report["checks"])
                 command = runner.run.call_args.args[0]
+                self.assertNotIn("--community", command)
+                self.assertNotIn(args.work_dir / "sources/.github", command)
                 self.assertIn("--js", command)
                 self.assertIn("emcc", runner.report["tools"])
                 self.assertIn("node", runner.report["tools"])
