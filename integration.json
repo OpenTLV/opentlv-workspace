@@ -4,37 +4,37 @@
     "core": {
       "directory": "opentlv",
       "repository": "https://github.com/OpenTLV/opentlv.git",
-      "revision": "1043bdccb0b5d3b519c5dd05cfc69bcdab511530"
+      "revision": "345c77acb29266036df5f27d04ce315bb61853cc"
     },
     "cli": {
       "directory": "opentlv-cli",
       "repository": "https://github.com/OpenTLV/opentlv-cli.git",
-      "revision": "abd2bce09a9f25071a41d7c1f3249fd48e8a0b20"
+      "revision": "514d76f48485cc7fc602f8287b9f22e4ce015997"
     },
     "lua": {
       "directory": "opentlv-lua",
       "repository": "https://github.com/OpenTLV/opentlv-lua.git",
-      "revision": "e2b65d515852748b80d1e4506c4b3a306d30a2f4"
+      "revision": "77abc807bdd59956790497483a9d1fbad4b79019"
     },
     "python": {
       "directory": "opentlv-python",
       "repository": "https://github.com/OpenTLV/opentlv-python.git",
-      "revision": "74d7ed756229ab11544d5eba38568ae6f2bfddb0"
+      "revision": "52e15f8028da8521ccf64a97b03f7e6e249a0912"
     },
     "rust": {
       "directory": "opentlv-rust",
       "repository": "https://github.com/OpenTLV/opentlv-rust.git",
-      "revision": "ee2d1f4eae24321f9dbd62d35fdeaf79e344bfbe"
+      "revision": "f297ab3899bafb95716a39a38dfaf7df14e8768d"
     },
     "go": {
       "directory": "opentlv-go",
       "repository": "https://github.com/OpenTLV/opentlv-go.git",
-      "revision": "bc73a5100ef6109e8e5634add62785eb21352254"
+      "revision": "247da7863510ebed64030a8c6c01e122ad122a31"
     },
     "js": {
       "directory": "opentlv-js",
       "repository": "https://github.com/OpenTLV/opentlv-js.git",
-      "revision": "72338d82aad22c1620b75e0f8f190de11982a74a"
+      "revision": "22efa490f25e5d947a7b88f451f68f4aab28b6a9"
     },
     "community": {
       "directory": ".github",
@@ -44,7 +44,7 @@
     "docs": {
       "directory": "opentlv-docs",
       "repository": "https://github.com/OpenTLV/opentlv-docs.git",
-      "revision": "3696ae35c31e1865524e33cc045026137fe9a196"
+      "revision": "3f2e87c7592dcc5d62b6a1d56b1e1b4b3bc5dd6a"
     }
   }
 }

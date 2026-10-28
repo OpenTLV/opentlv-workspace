@@ -34,19 +34,22 @@ configuration and setup behavior; it does not revalidate component compatibility
 portal and community repository revisions selected for integration CI. These are test inputs, not an
 ecosystem release version or a replacement for component dependency manifests.
 Update pins deliberately and validate both scenarios together.
-All seven component pins match the source revisions declared by the
-pinned portal. The manifest intentionally does not follow moving main branches.
+The manifest intentionally does not follow moving main branches. The 0.1.0
+release candidate selects the published component revisions listed below;
+all seven component pins match the selected portal's documentation sources.
 
-Python is pinned to `74d7ed756229ab11544d5eba38568ae6f2bfddb0`, matching the
-selected portal's Python source. Both Full scenarios record its clean checkout
+Python is pinned to its `v0.1.0` release, `52e15f8028da8521ccf64a97b03f7e6e249a0912`.
+Both Full scenarios record its clean checkout
 identity and assemble its manuals. This is checkout and documentation coverage;
 the workspace does not build/import Python or report a Python Core dependency.
 Runtime smoke remains a separate reviewed integration change against the
-[Python development contract](https://github.com/OpenTLV/opentlv-python/blob/74d7ed756229ab11544d5eba38568ae6f2bfddb0/docs/development/python.md).
+[Python development contract](https://github.com/OpenTLV/opentlv-python/blob/52e15f8028da8521ccf64a97b03f7e6e249a0912/docs/development/python.md).
 Keep API, packaging and behavioral tests in the component repository.
 
-Rust is pinned to `ee2d1f4eae24321f9dbd62d35fdeaf79e344bfbe`, matching the
-reviewed portal manuals. Both Full
+Rust is pinned to its `v0.1.0` release, `f297ab3899bafb95716a39a38dfaf7df14e8768d`, matching the
+reviewed portal manuals. Its Core lock selects published Core `v0.8.0`; Full
+supplies its read-only GitHub token to the component-owned artifact verifier.
+Both Full
 scenarios record its checkout identity like the other repositories, then run
 `cargo run --locked -p opentlv --example quick_start` with the toolchain set by
 `RUSTUP_TOOLCHAIN` (the workflow installs Rust's pinned stable 1.99.1) and a
@@ -135,10 +138,11 @@ as other entries; a local checkout check does not establish hosted Full coverage
 
 ### JavaScript migration handoff
 
-The reviewed combination uses JS `72338d82`, cleaned Core `1043bdcc` and
-Docs `3696ae35`. The CLI, Lua, Python, Rust and Go pins match that portal's
-reviewed sources, so sibling and remote documentation cover the same seven
-component revisions. The [manifest](../integration.json) records full SHAs.
+The earlier migration combination used JS `72338d82`, cleaned Core `1043bdcc` and
+Docs `3696ae35`. Its CLI, Lua, Python, Rust and Go pins matched that portal's
+reviewed sources, so sibling and remote documentation covered the same seven
+component revisions. The release candidate below supersedes that combination;
+the [manifest](../integration.json) records the current full SHAs.
 
 Both Full scenarios build JS in a fresh Emscripten 4.0.10 Release directory and
 run its existing Node 22 smoke and parse example. Sibling mode explicitly passes
@@ -221,6 +225,31 @@ for source parity, component checks and the migration completion criteria.
 
 ## Release Gate
 
+### Workspace 0.1.0 candidate
+
+The first Workspace release is `v0.1.0`, with changelog heading
+`## [0.1.0] - 2026-10-28`. It selects these immutable revisions:
+
+| Repository | Selected release/ref | Commit |
+| --- | --- | --- |
+| Core | `v0.8.0` | `345c77acb29266036df5f27d04ce315bb61853cc` |
+| CLI | `v0.2.0` | `514d76f48485cc7fc602f8287b9f22e4ce015997` |
+| Lua | `v0.2.0` | `77abc807bdd59956790497483a9d1fbad4b79019` |
+| Python | `v0.1.0` | `52e15f8028da8521ccf64a97b03f7e6e249a0912` |
+| Rust | `v0.1.0` | `f297ab3899bafb95716a39a38dfaf7df14e8768d` |
+| Go | `v0.1.0` | `247da7863510ebed64030a8c6c01e122ad122a31` |
+| JS | `v0.1.0` | `22efa490f25e5d947a7b88f451f68f4aab28b6a9` |
+| Docs | [PR #141](https://github.com/OpenTLV/opentlv-docs/pull/141) commit | `3f2e87c7592dcc5d62b6a1d56b1e1b4b3bc5dd6a` |
+| Community | unchanged `main` commit | `06f80287bf6136ee962460459b057c959aa1313e` |
+
+Sibling and remote mode assemble manuals from the same seven released
+component revisions. The portal pin includes the CLI quality-gate and Python
+release-note navigation required by this combination. Docs PR #141 is merged;
+Workspace retains its exact tested commit and does not rewrite the portal's
+manifest or publish component documentation.
+
+### Publication checks
+
 [workspace-release.yml](../.github/workflows/workspace-release.yml) is manually
 dispatched from main with one input: `tag`, in canonical `vMAJOR.MINOR.PATCH`
 format. A workspace version identifies a verified integration snapshot.
@@ -248,7 +277,8 @@ The gate:
    certificate's run/attempt identity. See
    [GitHub CLI attestation verification](https://cli.github.com/manual/gh_attestation_verify).
 8. Creates the workspace tag with a create-only API request, then publishes the
-   verified snapshot assets in a GitHub Release.
+   verified snapshot assets in a GitHub Release, using only the selected
+   changelog section as release notes. Git tags keep their `v` prefix.
 
 The output tar contains workspace sources and its locked integration manifest,
 not vendored component repositories or component binaries. Component source
@@ -262,10 +292,20 @@ are never overwritten. If publication fails after tag creation, the verified
 tag remains; investigate and recover deliberately rather than bypassing the
 gate or force-moving it.
 
-The implementation does not authorize a release from the current open
-changelog. Actual tag creation/publication can wait for the next planned
-Workspace release. Hosted OIDC, attestation and publication acceptance remain
-unverified until that release; local mocked regressions are not hosted evidence.
+Before publishing, require successful hosted Full evidence for the reviewed
+manifest update and Main CI on the final release commit. Confirm `v0.1.0` is
+still unused, then dispatch Workspace Release from `main`; it must run its own
+Full checks in the same attempt. Local or earlier-commit results cannot replace
+those gates.
+
+After publication, verify the tag's exact workspace SHA, changelog-derived
+notes and all four assets: `opentlv-workspace-v0.1.0.tar`,
+`release-manifest.json`, `integration-evidence.json` and `SHA256SUMS`. Verify
+downloaded checksums and attestations, then link the release and successful runs
+in [Workspace #51](https://github.com/OpenTLV/opentlv-workspace/issues/51) and
+[Core #718](https://github.com/OpenTLV/opentlv/issues/718). Hosted OIDC and
+publication remain unverified until that release; candidate preparation and
+local tests alone do not satisfy the issue's acceptance criteria.
 
 ## Maintaining the integration manifest
 
@@ -332,7 +372,10 @@ python -m pre_commit run --all-files --show-diff-on-failure
 
 Full checks additionally need CMake 3.24+, Ninja, a compatible C/C++ toolchain,
 Git, Lua 5.4 and its development headers, and Rust 1.82 or newer through
-rustup (CI sets `RUSTUP_TOOLCHAIN=1.99.1`). On Windows, keep the work directory
+rustup (CI sets `RUSTUP_TOOLCHAIN=1.99.1`). The released Rust binding additionally
+requires GitHub CLI and read access to Core release assets and attestations;
+hosted Full provides `GH_TOKEN` without granting repository write permission.
+On Windows, keep the work directory
 short: the Rust build clones and builds Core deep inside its Cargo target. Install the small portal assembly
 dependency set into an isolated Python environment:
 

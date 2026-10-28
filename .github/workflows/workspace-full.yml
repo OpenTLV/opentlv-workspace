@@ -69,6 +69,7 @@ jobs:
         env:
           MODE: ${{ matrix.mode }}
           RUSTUP_TOOLCHAIN: '1.99.1'
+          GH_TOKEN: ${{ github.token }}
         run: >-
           python -B scripts/integration.py full --mode "$MODE"
           --work-dir "build/$MODE" --report "build/results/$MODE.json"
