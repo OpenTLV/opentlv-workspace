@@ -277,6 +277,12 @@ class ReleaseTests(unittest.TestCase):
         self.root = Path(temp.name)
         self.evidence = fixture()
         self.selected = {"schema": 1, "tag": "v1.2.3", "lock": self.evidence["request"]}
+        (self.root / "CHANGELOG.md").write_text(
+            "# Changelog\n\n## [1.2.3] - 2026-01-01\n\n### Added\n\n- Snapshot.\n"
+            "\n## [1.2.2] - 2025-12-01\n\n### Fixed\n\n- Historical changes.\n", encoding="utf-8")
+        root_patch = patch.object(release, "ROOT", self.root)
+        root_patch.start()
+        self.addCleanup(root_patch.stop)
 
     def assembled(self):
         output = self.root / "payload"
@@ -293,7 +299,9 @@ class ReleaseTests(unittest.TestCase):
 
     def test_closed_changelog_and_canonical_tag(self):
         text = "# Changelog\n\n## [1.2.3] - 2026-01-01\n\n### Added\n\n- Snapshot.\n"
-        release.closed_changelog(text, "v1.2.3")
+        self.assertEqual(release.closed_changelog(text, "v1.2.3"), "### Added\n\n- Snapshot.\n")
+        self.assertEqual(release.closed_changelog((self.root / "CHANGELOG.md").read_text(), "v1.2.3"),
+                         "### Added\n\n- Snapshot.\n")
         release.closed_changelog(text.replace("## [1", "## [Unreleased]\n\n## [1"), "v1.2.3")
         for tag in ("1.2.3", "v01.2.3", "v1.2", "v1.2.3/evil", "v2.0.0"):
             with self.assertRaises(ValueError):
@@ -427,8 +435,10 @@ class ReleaseTests(unittest.TestCase):
                 patch.object(release, "verify_attestations", side_effect=lambda *a: order.append("attest")), \
                 patch.object(release, "absent"), \
                 patch.object(release, "create_tag", side_effect=lambda *a: order.append("tag")), \
-                patch.object(release, "run", side_effect=lambda *a: order.append("release")):
+                patch.object(release, "run", side_effect=lambda *a: order.append("release")) as publish:
             release.publish(self.root, "v1.2.3")
+            arguments = publish.call_args.args
+            self.assertEqual(arguments[arguments.index("--notes") + 1], "### Added\n\n- Snapshot.\n")
         self.assertEqual(order, ["jobs", "attest", "tag", "release"])
         with patch.object(release, "validate_payload", return_value=self.selected), \
                 patch.object(release, "verify_jobs"), patch.object(release, "verify_attestations"), \
@@ -530,6 +540,9 @@ class WorkflowTests(unittest.TestCase):
                          "./.github/workflows/workspace-full.yml")
         self.assertEqual(workflows["full"]["jobs"]["integration"]["strategy"]["matrix"]["mode"],
                          ["sibling", "remote"])
+        smoke = next(step for step in workflows["full"]["jobs"]["integration"]["steps"]
+                     if "scripts/integration.py full" in step.get("run", ""))
+        self.assertEqual(smoke["env"]["GH_TOKEN"], "${{ github.token }}")
         jobs = workflows["release"]["jobs"]
         self.assertEqual(jobs["assemble"]["permissions"]["contents"], "read")
         self.assertEqual(jobs["assemble"]["permissions"]["id-token"], "write")

@@ -140,7 +140,7 @@ Keep `opentlv-python` and `opentlv` as sibling checkouts. From `opentlv-python`,
 
 Follow the [Python local workspace guide](https://github.com/OpenTLV/opentlv-python/blob/main/docs/development/python.md#local-workspace-development) for its environment, installation and explicit Core selection. The workspace supplies no Python environment, import path or CMake override. Python remains independently buildable without this workspace or a sibling Core checkout; dependency selection belongs to the Python repository.
 
-The older Python revision in the workspace's [integration manifest](integration.json) is still an initial scaffold used only for checkout validation. That CI baseline does not describe current Python development. See the [integration coverage limits](docs/integration.md#full-ci-and-supported-combinations) before interpreting a workspace CI result.
+The workspace's [integration manifest](integration.json) selects Python `v0.1.0`, but Workspace coverage remains limited to checkout identity and documentation assembly. Python runtime, packaging and behavioral tests stay in the component repository. See the [integration coverage limits](docs/integration.md#full-ci-and-supported-combinations) before interpreting a workspace CI result.
 
 ### Rust and Local Core Development
 

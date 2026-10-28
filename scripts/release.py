@@ -42,6 +42,7 @@ def closed_changelog(text, tag):
     require(match is not None, "Newest closed changelog must match requested tag")
     require(date.fromisoformat(match[1]) <= date.today(), "Release date is in the future")
     require(re.search(r"^- \S", body, re.MULTILINE), "Empty release changelog")
+    return body.strip() + "\n"
 
 
 def absent(path):
@@ -187,6 +188,7 @@ def create_tag(selected):
 
 def publish(directory, tag):
     selected = validate_payload(directory, tag)
+    notes = closed_changelog((ROOT / "CHANGELOG.md").read_text(encoding="utf-8"), tag)
     verify_jobs(selected, assembled=True)
     verify_attestations(directory, selected)
     # Recheck absence after remote verification; creation still rejects races.
@@ -195,7 +197,7 @@ def publish(directory, tag):
     create_tag(selected)
     run("gh", "release", "create", tag, "--repo", REPOSITORY, "--verify-tag",
         "--title", f"OpenTLV Workspace {tag}", "--notes",
-        "Verified workspace integration snapshot. Component releases remain independently versioned.",
+        notes,
         *sorted(directory.iterdir()))
 
 

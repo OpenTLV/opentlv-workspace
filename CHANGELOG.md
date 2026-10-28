@@ -5,10 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.1.0] - 2026-10-28
 
 ### Changed
 
+- Prepare the first Workspace release with Core v0.8.0, CLI/Lua v0.2.0 and Python/Rust/Go/JS v0.1.0 pinned to their released commits, update the documentation portal pin, and allow authenticated Rust Core consumption in Full CI. Publish the selected changelog section as release notes alongside the verified integration snapshot. (#51)
 - Use the published community-policy pin, link shared guidance and private reporting from local policies and the issue chooser, and preserve Contributor Covenant attribution under CC BY 4.0. (#47, #48)
 - Validate license metadata without automatically assigning Marek Cingel copyright to other contributors. (#21, #48, OpenTLV/opentlv#703)
 - Complete JavaScript runtime and seven-source Docs integration in sibling/remote Full checks, verify effective Core receipts and compiler inputs, install Emscripten 4.0.10/Node 22, and align immutable pins with the reviewed portal source set. (#42, OpenTLV/opentlv-js#14, OpenTLV/opentlv#696)
