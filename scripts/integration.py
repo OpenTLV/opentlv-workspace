@@ -23,6 +23,8 @@ COMPONENTS = {"core": "opentlv", "cli": "opentlv-cli",
               "go": "opentlv-go", "js": "opentlv-js", "docs": "opentlv-docs",
               "community": ".github", "testlab": "opentlv-testlab"}
 DOCUMENTATION_COMPONENTS = ("core", "cli", "lua", "python", "rust", "go", "js")
+# Editor presentation only: shared settings must not configure builds or checkouts.
+SHARED_SETTINGS = {"scm.repositories.visible": 0}
 
 
 def require(condition, message):
@@ -61,7 +63,7 @@ def validate_workspace(root=ROOT):
     actual = {item["name"]: item["path"] for item in folders}
     require(actual == expected and len(actual) == len(folders),
             "Workspace roots differ from the integration manifest")
-    require(config.get("settings") == {},
+    require(config.get("settings") == SHARED_SETTINGS,
             "Shared build settings need an explicit integration contract")
     require({repo.directory: repo.https_url for repo in bootstrap.REPOSITORIES}
             == {item["directory"]: item["repository"] for item in data["repositories"].values()},

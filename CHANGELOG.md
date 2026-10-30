@@ -9,7 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Remove the Source Control repository list height limit so the eleventh workspace repository, TestLab, is not confined below the default ten-row viewport.
+- Pin the Source Control repository list setting in the workspace integration contract so Main smoke passes, while every other shared setting stays rejected. (OpenTLV/opentlv-testlab#2)
+- Remove the Source Control repository list height limit so the eleventh workspace repository, TestLab, is not confined below the default ten-row viewport. (OpenTLV/opentlv-testlab#2)
 - Restore the garbled box-drawing characters in the README directory layout. (#53)
 
 ### Added

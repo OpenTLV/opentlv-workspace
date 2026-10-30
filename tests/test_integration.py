@@ -72,7 +72,7 @@ class ContractTests(unittest.TestCase):
         for key in STANDALONE:
             with self.subTest(key=key):
                 self.assertEqual(roots[f"opentlv-{key}"].parent / "opentlv", roots["opentlv"])
-        self.assertEqual(config["settings"], {})
+        self.assertEqual(config["settings"], {"scm.repositories.visible": 0})
 
     def test_reject_scaffold_checkout_configuration_drift(self):
         original = integration.load_manifest(self.root)
@@ -346,6 +346,9 @@ class ContractTests(unittest.TestCase):
         variants.append(config)
         config = copy.deepcopy(original)
         config["settings"]["cmake.sourceDirectory"] = "../opentlv"
+        variants.append(config)
+        config = copy.deepcopy(original)
+        config["settings"]["scm.repositories.visible"] = 10
         variants.append(config)
         for variant in variants:
             with self.subTest(variant=variant):
