@@ -45,5 +45,7 @@
 			"name": "opentlv-testlab"
 		}
 	],
-	"settings": {}
+	"settings": {
+		"scm.repositories.visible": 0
+	}
 }

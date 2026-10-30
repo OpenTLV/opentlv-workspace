@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Remove the Source Control repository list height limit so the eleventh workspace repository, TestLab, is not confined below the default ten-row viewport.
 - Restore the garbled box-drawing characters in the README directory layout. (#53)
 
 ### Added
