@@ -21,7 +21,7 @@ SHA = re.compile(r"[0-9a-f]{40}")
 COMPONENTS = {"core": "opentlv", "cli": "opentlv-cli",
               "lua": "opentlv-lua", "python": "opentlv-python", "rust": "opentlv-rust",
               "go": "opentlv-go", "js": "opentlv-js", "docs": "opentlv-docs",
-              "community": ".github"}
+              "community": ".github", "testlab": "opentlv-testlab"}
 DOCUMENTATION_COMPONENTS = ("core", "cli", "lua", "python", "rust", "go", "js")
 
 
@@ -35,7 +35,7 @@ def load_manifest(root=ROOT):
     require(data.get("schema") == 1, "Unsupported integration manifest schema")
     repos = data.get("repositories")
     require(isinstance(repos, dict) and set(repos) == set(COMPONENTS),
-            "Integration manifest must identify Core, CLI, Lua, Python, Rust, Go, JS, docs and community")
+            "Integration manifest must identify Core, CLI, Lua, Python, Rust, Go, JS, docs, community and TestLab")
     for key, directory in COMPONENTS.items():
         item = repos[key]
         require(isinstance(item, dict), f"Invalid repository: {key}")
