@@ -16,8 +16,10 @@ component. Opening the editor does not configure or build anything.
 
 These checks do not build components. The workspace file currently uses strict
 JSON, a subset of VS Code JSONC. Comments require updating both the validator and
-the bootstrap test parser. Shared settings are intentionally empty; adding build
-settings requires defining and testing their integration contract.
+the bootstrap test parser. Shared settings are limited to the pinned
+`scm.repositories.visible: 0`, which removes the fixed Source Control repository
+list height and affects only the editor; adding build settings requires defining
+and testing their integration contract.
 
 ## Main CI
 
