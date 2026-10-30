@@ -41,6 +41,11 @@
       "repository": "https://github.com/OpenTLV/.github.git",
       "revision": "06f80287bf6136ee962460459b057c959aa1313e"
     },
+    "testlab": {
+      "directory": "opentlv-testlab",
+      "repository": "https://github.com/OpenTLV/opentlv-testlab.git",
+      "revision": "ac154ea0a019cb19bd39f9fca25a4d55c822fd1c"
+    },
     "docs": {
       "directory": "opentlv-docs",
       "repository": "https://github.com/OpenTLV/opentlv-docs.git",

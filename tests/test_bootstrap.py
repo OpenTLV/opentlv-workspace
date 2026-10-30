@@ -63,6 +63,19 @@ class RepositoryIdentityTests(unittest.TestCase):
             expected,
         )
 
+    def test_testlab_repository_aliases(self):
+        expected = ("github.com", "opentlv", "opentlv-testlab")
+        for url in ("https://github.com/OpenTLV/opentlv-testlab.git",
+                    "https://github.com/OpenTLV/opentlv-testlab",
+                    "git@github.com:OpenTLV/opentlv-testlab.git",
+                    "ssh://git@github.com/OpenTLV/opentlv-testlab.git"):
+            with self.subTest(url=url):
+                self.assertEqual(bootstrap.repository_identity(url), expected)
+        self.assertNotEqual(
+            bootstrap.repository_identity("https://github.com/OpenTLV/opentlv.git"),
+            expected,
+        )
+
     def test_destinations_match_workspace_roots(self):
         config = json.loads((WORKSPACE / "opentlv.code-workspace").read_text(encoding="utf-8"))
         expected = {(WORKSPACE / item["path"]).resolve() for item in config["folders"]}
@@ -144,6 +157,12 @@ class BootstrapTests(unittest.TestCase):
             "https://github.com/OpenTLV/.github.git",
         )
         self.assertFalse((self.workspace / ".github").exists())
+        testlab = self.root / "opentlv-testlab"
+        self.assertEqual((testlab / "tracked.txt").read_text(), "initial\n")
+        self.assertEqual(
+            self.run_git("-C", testlab, "config", "--local", "--get", "remote.origin.url"),
+            "https://github.com/OpenTLV/opentlv-testlab.git",
+        )
 
     def test_ssh_protocol(self):
         result = self.run_bootstrap("--protocol", "ssh")

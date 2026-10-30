@@ -39,6 +39,10 @@
 		{
 			"path": "../.github",
 			"name": ".github"
+		},
+		{
+			"path": "../opentlv-testlab",
+			"name": "opentlv-testlab"
 		}
 	],
 	"settings": {}
