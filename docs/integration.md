@@ -33,7 +33,7 @@ configuration and setup behavior; it does not revalidate component compatibility
 ## Full CI and supported combinations
 
 [integration.json](../integration.json) identifies the exact Core, CLI, Lua, Python, Rust, Go, JS,
-portal, community and TestLab repository revisions selected for integration CI. These are test inputs, not an
+portal, community, TestLab and Corpus repository revisions selected for integration CI. These are test inputs, not an
 ecosystem release version or a replacement for component dependency manifests.
 Update pins deliberately and validate both scenarios together.
 The manifest intentionally does not follow moving main branches. The 0.1.0
@@ -154,6 +154,25 @@ must not be added to Core or the binding repositories.
 
 The initial commit contains only README and LICENSE, and its LICENSE names `OpenTLV`
 as copyright holder. Correct that attribution in TestLab, then review and advance
+this pin to the published commit through the same Full evidence process as other entries.
+
+### Corpus repository bootstrap
+
+The `corpus` entry pins public `OpenTLV/opentlv-corpus` to its initial commit
+`fbc4c889be2d1af4023e2575420bdfefd70a6612`. The editor and bootstrap use
+`../opentlv-corpus`; fresh integration checkouts use `sources/opentlv-corpus`.
+Both Full scenarios require its clean checkout at the configured SHA and record
+its origin and commit in `sources.corpus`; missing, dirty or mismatched evidence
+fails aggregate validation.
+
+This repository has checkout/provenance coverage only, with no runtime smoke,
+Core dependency or portal source. Corpus owns test data and generic conformance
+contracts; it does not replace TestLab and is not a runtime or build dependency of
+Workspace, Core or the binding repositories. Workspace does not run Corpus tests,
+schemas, runners or adapters.
+
+The initial commit contains only README and LICENSE, and its LICENSE names `OpenTLV`
+as copyright holder. Correct that attribution in Corpus, then review and advance
 this pin to the published commit through the same Full evidence process as other entries.
 
 ### JavaScript migration handoff
@@ -419,7 +438,7 @@ python -B scripts/integration.py full --mode sibling --source-root .. --work-dir
 
 This explicit mode accepts different HEADs and local changes, records configured
 and actual revisions plus dirty state, and marks the report `local_development`.
-All manifest repositories, including `opentlv-python`, `opentlv-rust`, `.github` and `opentlv-testlab`, must exist under
+All manifest repositories, including `opentlv-python`, `opentlv-rust`, `.github`, `opentlv-testlab` and `opentlv-corpus`, must exist under
 `--source-root`; bootstrap can create missing siblings.
 It never fetches, switches branches or writes build output into those siblings.
 Portal output is created from a disposable copy. A local-development report is

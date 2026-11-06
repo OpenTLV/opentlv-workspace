@@ -43,6 +43,10 @@
 		{
 			"path": "../opentlv-testlab",
 			"name": "opentlv-testlab"
+		},
+		{
+			"path": "../opentlv-corpus",
+			"name": "opentlv-corpus"
 		}
 	],
 	"settings": {
