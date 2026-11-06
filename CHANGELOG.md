@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Add public `OpenTLV/opentlv-corpus` as a sibling workspace root with HTTPS/SSH bootstrap, an immutable integration pin and checkout provenance in both Full scenarios; Workspace does not run Corpus tests. (#57)
 - Add public `OpenTLV/opentlv-testlab` as a sibling workspace root with HTTPS/SSH bootstrap, an immutable integration pin and checkout provenance in both Full scenarios; document its purpose and keep external test dependencies and differential-test execution in TestLab, without adding runtime checks or dependencies to Workspace, Core or binding repositories. (#53)
 
 ## [0.1.0] - 2026-10-28

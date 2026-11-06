@@ -76,6 +76,19 @@ class RepositoryIdentityTests(unittest.TestCase):
             expected,
         )
 
+    def test_corpus_repository_aliases(self):
+        expected = ("github.com", "opentlv", "opentlv-corpus")
+        for url in ("https://github.com/OpenTLV/opentlv-corpus.git",
+                    "https://github.com/OpenTLV/opentlv-corpus",
+                    "git@github.com:OpenTLV/opentlv-corpus.git",
+                    "ssh://git@github.com/OpenTLV/opentlv-corpus.git"):
+            with self.subTest(url=url):
+                self.assertEqual(bootstrap.repository_identity(url), expected)
+        self.assertNotEqual(
+            bootstrap.repository_identity("https://github.com/OpenTLV/opentlv-testlab.git"),
+            expected,
+        )
+
     def test_destinations_match_workspace_roots(self):
         config = json.loads((WORKSPACE / "opentlv.code-workspace").read_text(encoding="utf-8"))
         expected = {(WORKSPACE / item["path"]).resolve() for item in config["folders"]}
@@ -163,6 +176,34 @@ class BootstrapTests(unittest.TestCase):
             self.run_git("-C", testlab, "config", "--local", "--get", "remote.origin.url"),
             "https://github.com/OpenTLV/opentlv-testlab.git",
         )
+        corpus = self.root / "opentlv-corpus"
+        self.assertEqual((corpus / "tracked.txt").read_text(), "initial\n")
+        self.assertEqual(
+            self.run_git("-C", corpus, "config", "--local", "--get", "remote.origin.url"),
+            "https://github.com/OpenTLV/opentlv-corpus.git",
+        )
+
+    def test_corpus_ssh_checkout_is_preserved_and_wrong_origin_rejected(self):
+        corpus = self.root / "opentlv-corpus"
+        result = self.run_bootstrap("--protocol", "ssh")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(
+            self.run_git("-C", corpus, "config", "--local", "--get", "remote.origin.url"),
+            "git@github.com:OpenTLV/opentlv-corpus.git",
+        )
+        (corpus / "local.txt").write_text("keep me\n", encoding="utf-8")
+        result = self.run_bootstrap()
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn(f"SKIPPED: {corpus}", result.stdout)
+        self.assertEqual((corpus / "local.txt").read_text(), "keep me\n")
+        self.run_git("-C", corpus, "remote", "set-url", "origin",
+                     "https://github.com/OpenTLV/opentlv-testlab.git")
+        config = (corpus / ".git/config").read_bytes()
+        result = self.run_bootstrap()
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn(f"CONFLICT: {corpus}", result.stderr)
+        self.assertEqual((corpus / ".git/config").read_bytes(), config)
+        self.assertEqual((corpus / "local.txt").read_text(), "keep me\n")
 
     def test_ssh_protocol(self):
         result = self.run_bootstrap("--protocol", "ssh")
