@@ -76,7 +76,7 @@ not ignore.
 | `trailing-whitespace` | Text, except `.diff` and `.patch` | Removes trailing whitespace |
 | `end-of-file-fixer` | Text | Ends the file with exactly one newline |
 | `mixed-line-ending` | Text | Rejects files that mix line ending styles |
-| `check-json` | `*.json`, `.pymarkdown` | Rejects invalid JSON |
+| `check-json` | `*.json`, `.pymarkdown`, `opentlv.code-workspace` | Rejects invalid JSON |
 | `check-toml` | TOML | Rejects invalid TOML |
 | `yamllint` | YAML | Rejects syntax errors and style warnings |
 | `pymarkdown` | Markdown | Rejects Markdown style violations |

@@ -1,0 +1,16 @@
+{
+  "folders": [
+    {
+      "name": "opentlv-workspace",
+      "path": "."
+    },
+    {
+      "name": ".github",
+      "path": "../.github"
+    },
+    {
+      "name": "opentlv",
+      "path": "../opentlv"
+    }
+  ]
+}
