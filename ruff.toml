@@ -1,0 +1,16 @@
+# Python lint and format settings. See https://docs.astral.sh/ruff/.
+
+# The runtime minimum from docs/layout.md.
+target-version = "py311"
+# Scripts import the shared package from scripts/opentlv_workspace/.
+src = ["scripts", "tests"]
+
+[lint]
+select = [
+  "E",   # pycodestyle errors
+  "W",   # pycodestyle warnings
+  "F",   # Pyflakes
+  "I",   # import sorting
+  "B",   # common bug patterns
+  "UP",  # syntax for the target Python version
+]

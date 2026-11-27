@@ -138,10 +138,15 @@ On Debian and Ubuntu, `venv` needs the distribution's `python3-venv`
 package, or the package for the specific version, such as `python3.11-venv`.
 
 Activate the environment with `source .venv/bin/activate` on Linux and
-macOS, or `.venv\Scripts\activate` on Windows. The pinned tool set and its
-install command are added with the contributor tooling. Until then,
-contributors need no third-party packages. Contributor tools must not
-become runtime dependencies, and neither set may install dependencies of a
-managed repository.
+macOS, or `.venv\Scripts\activate` on Windows. Then install the pinned
+tools and run the checks as described in [contributor tooling](tooling.md):
+
+```sh
+python -m pip install --require-hashes --only-binary=:all: -r requirements-dev.txt
+pre-commit run --all-files
+```
+
+Contributor tools must not become runtime dependencies, and neither set may
+install dependencies of a managed repository.
 
 [Using Python on Windows]: https://docs.python.org/3/using/windows.html
