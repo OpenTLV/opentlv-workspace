@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Recorded the active `main` ruleset, the signed merge history, and enabled private vulnerability reporting in the governance record. (#1)
+
 ### Added
 
 - Documented how to contribute, report vulnerabilities privately, and merge changes under the repository's governance settings. (#1)

@@ -35,38 +35,44 @@ remaining GitHub default labels are kept for triage.
 Use a pull request with signed commits and resolve review conversations
 before merging. Use a regular merge commit to preserve the branch history.
 
-The `main` ruleset follows the [governance baseline]:
+The [effective rules for main] and the [repository ruleset] showed the
+following on 2026-11-27.
 
-- It targets only `refs/heads/main`, requires signed commits and a pull
-  request, permits only merge commits, and blocks force pushes and branch
-  deletion.
+- The [ruleset inventory including organization rules] returned one active
+  repository ruleset, `main-protection` (ID `28227255`). It targets only
+  `refs/heads/main`. It requires signatures and a pull request, permits only
+  merge commits, and blocks force pushes and branch deletion.
 - The solo-maintainer configuration requires zero approving reviews and
   requires conversation resolution. Code Owner approval, last-push approval,
-  and linear history are disabled. The bypass list is empty.
+  and linear history are disabled.
+- The maintainer reported an empty bypass list on 2026-11-27. The public
+  ruleset response did not expose that list.
 - Required status checks are not configured because the repository has no
   workflows. When project CI first reports on a pull request, verify the
   exact check names and source app IDs, then require the applicable checks
-  and an up-to-date branch.
+  and an up-to-date branch under the [governance baseline].
 
-On 2026-11-27, the [ruleset inventory including organization rules] and the
-[effective rules for main] were empty. The `main` ruleset is not yet active.
-The initial commit `6737439` on `main` had a verified signature.
+On 2026-11-27, every commit on `main` had a verified signature, including
+the regular merge commit `bab14aa` and the commit it introduced, `01320d7`.
 
 ## Actions and dependency security
 
-| Control | Intended setting | Status on 2026-11-27 |
+| Control | Setting | Evidence on 2026-11-27 |
 | --- | --- | --- |
-| Allowed actions | Organization policy; actions pinned to full commit SHAs | Unavailable to inspect without authentication |
-| Default `GITHUB_TOKEN` | Read access; Actions cannot create or approve pull requests | Unavailable to inspect without authentication |
-| Fork workflows | Approval required for external contributors | Unavailable to inspect without authentication |
+| Allowed actions | Organization policy; actions pinned to full commit SHAs | Reported by the maintainer |
+| Default `GITHUB_TOKEN` | Read access; Actions cannot create or approve pull requests | Reported by the maintainer |
+| Fork workflows | Approval required for external contributors | Reported by the maintainer |
 | Workflows | None until workspace implementation begins | No [workflows] |
 | Dependency graph | Enabled | [Dependency graph export] returned |
-| Dependabot alerts and security updates | Enabled | Unavailable to inspect without authentication |
-| Secret scanning and push protection | Enabled | Unavailable to inspect without authentication |
-| Private vulnerability reporting | Enabled | [Private vulnerability reporting] returned `enabled: false` |
+| Dependabot alerts and security updates | Enabled | Reported by the maintainer |
+| Secret scanning and push protection | Enabled | Reported by the maintainer |
+| Private vulnerability reporting | Enabled | [Private vulnerability reporting] returned `enabled: true` |
 
-Follow the [secret protection procedure] and the [private reporting routes]
-when verifying these settings.
+The Actions, Dependabot, and secret protection settings require
+authenticated access for a fresh inspection. Opening the reporting form as a
+signed-in non-maintainer remains unverified. Follow the
+[secret protection procedure] and the [private reporting routes] when
+rechecking these settings.
 
 ## Licensing
 
@@ -82,6 +88,7 @@ provenance and license of any external material when it is added.
 [private reporting routes]: https://github.com/OpenTLV/.github/blob/main/docs/adoption.md#private-reporting-routes-and-verification
 [community profile]: https://api.github.com/repos/OpenTLV/opentlv-workspace/community/profile
 [repository labels]: https://github.com/OpenTLV/opentlv-workspace/labels
+[repository ruleset]: https://github.com/OpenTLV/opentlv-workspace/rules/28227255
 [ruleset inventory including organization rules]: https://api.github.com/repos/OpenTLV/opentlv-workspace/rulesets?includes_parents=true
 [effective rules for main]: https://api.github.com/repos/OpenTLV/opentlv-workspace/rules/branches/main
 [workflows]: https://api.github.com/repos/OpenTLV/opentlv-workspace/actions/workflows
