@@ -82,6 +82,8 @@ not ignore.
 | `pymarkdown` | Markdown | Rejects Markdown style violations |
 | `ruff-check` | Python | Rejects syntax errors and lint violations |
 | `ruff-format` | Python | Formats the file |
+| `check-inventory` | `repositories.toml`, `opentlv.code-workspace`, and Python under `scripts/` | Runs `python scripts/check_inventory.py`, which rejects inventory rule violations and editor roots that do not match the inventory. See [inventory validation](inventory.md#validation) |
+| `unittest` | `repositories.toml`, `opentlv.code-workspace`, and Python under `scripts/` and `tests/` | Runs the workspace tests with `python -m unittest discover --start-directory tests --top-level-directory .` and rejects any failure |
 | `reuse` | Whole repository | Rejects files without copyright or license information, invalid license identifiers, and missing or unused license texts. See [licensing metadata](licensing.md) |
 
 A hook that modifies a file fails the run. Review the change, stage it, and
@@ -103,6 +105,10 @@ run the checks again. To run one hook, pass its ID, for example
   library and is never used on Windows. Without libmagic, it falls back to
   `charset-normalizer`, so the check needs no system packages on any
   platform.
+- The workspace tests use the standard library `unittest` module, so they
+  add no contributor tool pins. The test runner and the `check-inventory`
+  hook run with the Python of the active environment, which is the
+  interpreter the contributor created the environment with.
 
 ## Commands for continuous integration
 
@@ -119,6 +125,15 @@ pre-commit run --all-files --show-diff-on-failure
 
 The commands need network access only to download the locked wheels from
 PyPI. The hooks run offline.
+
+The inventory check and the workspace tests need no contributor tools. A
+CI job that runs only them, for example on every supported Python version,
+can use the system interpreter without a virtual environment:
+
+```sh
+python scripts/check_inventory.py
+python -m unittest discover --start-directory tests --top-level-directory .
+```
 
 ## Updating the pins
 

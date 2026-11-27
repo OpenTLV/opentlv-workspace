@@ -93,6 +93,21 @@ repos:
         language: system
         types_or: [python, pyi]
 
+      # Workspace checks. They run the workspace's own standard-library code
+      # with the Python of the active environment and work offline.
+      - id: check-inventory
+        name: Check repository inventory and editor workspace
+        entry: python scripts/check_inventory.py
+        language: system
+        pass_filenames: false
+        files: ^(repositories\.toml|opentlv\.code-workspace|scripts/.*\.py)$
+      - id: unittest
+        name: Run workspace tests
+        entry: python -m unittest discover --start-directory tests --top-level-directory .
+        language: system
+        pass_filenames: false
+        files: ^(repositories\.toml|opentlv\.code-workspace|(scripts|tests)/.*\.py)$
+
       # Licensing metadata. REUSE checks the whole repository, including
       # untracked files that Git does not ignore, so the hook ignores the
       # selected file names and runs on every commit.

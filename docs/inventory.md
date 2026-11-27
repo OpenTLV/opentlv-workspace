@@ -147,9 +147,34 @@ change in an issue before editing the inventory. In the pull request:
    configuration lists a different set of repositories. This includes the
    roots of the [editor workspace](#editor-workspace).
 3. Record the change in the [changelog](../CHANGELOG.md).
+4. Run the [validation](#validation) and fix every reported problem.
 
-The `check-toml` pre-commit hook checks only the TOML syntax. Reviewers
-check the field rules in this document until a dedicated validation check
-is added.
+## Validation
+
+`scripts/check_inventory.py` checks the inventory against every rule in
+this document and checks that the editor workspace lists exactly the roots
+that the inventory requires:
+
+```sh
+python scripts/check_inventory.py
+```
+
+The script uses only the Python standard library, reads only
+`repositories.toml` and `opentlv.code-workspace` in the host checkout, and
+needs no network access and no managed checkouts. It finds the host
+checkout from its own location, so it gives the same result from any
+working directory, and it compares entries with the actual host directory
+name. Pass `--root <path>` to check another host checkout.
+
+The script prints one line for each problem, naming the file, the entry or
+root, and the rule that failed, and reports every problem in one run. The
+exit status is `0` if both files are valid, `1` if it finds a problem, and
+`2` for a usage error. While the inventory is invalid, the script checks
+only the structure of the editor workspace, because the expected roots are
+unknown.
+
+The `check-inventory` pre-commit hook runs the script when the inventory,
+the editor workspace, or a workspace script changes. See
+[contributor tooling](tooling.md#running-the-checks).
 
 [TOML 1.0]: https://toml.io/en/v1.0.0
