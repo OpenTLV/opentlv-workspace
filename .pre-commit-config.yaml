@@ -1,0 +1,91 @@
+# Contributor quality checks. Every hook runs a tool from the hash-locked
+# requirements-dev.txt in the activated virtual environment, so hooks need
+# no network access and install nothing. See docs/tooling.md.
+minimum_pre_commit_version: 4.7.0
+
+repos:
+  - repo: local
+    hooks:
+      # Repository hygiene
+      - id: check-added-large-files
+        name: Check file size (1 MiB limit)
+        entry: check-added-large-files --enforce-all --maxkb=1024
+        language: system
+      - id: check-case-conflict
+        name: Check for case-insensitive path conflicts
+        entry: check-case-conflict
+        language: system
+      - id: check-merge-conflict
+        name: Check for merge conflict markers
+        entry: check-merge-conflict --assume-in-merge
+        language: system
+        types: [text]
+      - id: check-symlinks
+        name: Check for broken symbolic links
+        entry: check-symlinks
+        language: system
+        types: [symlink]
+      - id: detect-private-key
+        name: Check for private keys
+        entry: detect-private-key
+        language: system
+        types: [text]
+
+      # Whitespace and line endings, matching .editorconfig
+      - id: fix-byte-order-marker
+        name: Remove UTF-8 byte order marks
+        entry: fix-byte-order-marker
+        language: system
+        types: [text]
+      - id: trailing-whitespace
+        name: Trim trailing whitespace
+        entry: trailing-whitespace-fixer
+        language: system
+        types: [text]
+        exclude: \.(diff|patch)$
+      - id: end-of-file-fixer
+        name: End files with a single newline
+        entry: end-of-file-fixer
+        language: system
+        types: [text]
+      - id: mixed-line-ending
+        name: Check for mixed line endings
+        entry: mixed-line-ending --fix=no
+        language: system
+        types: [text]
+
+      # Structured data
+      - id: check-json
+        name: Check JSON syntax
+        entry: check-json
+        language: system
+        files: (\.json|^\.pymarkdown)$
+      - id: check-toml
+        name: Check TOML syntax
+        entry: check-toml
+        language: system
+        types: [toml]
+      - id: yamllint
+        name: Lint YAML
+        entry: yamllint --strict
+        language: system
+        types: [yaml]
+
+      # Markdown
+      - id: pymarkdown
+        name: Lint Markdown
+        entry: pymarkdown scan
+        language: system
+        types: [markdown]
+
+      # Python
+      - id: ruff-check
+        name: Lint Python
+        entry: ruff check --force-exclude
+        language: system
+        types_or: [python, pyi]
+      - id: ruff-format
+        name: Format Python
+        entry: ruff format --force-exclude
+        language: system
+        types_or: [python, pyi]

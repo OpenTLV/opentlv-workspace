@@ -1,0 +1,3 @@
+# Lock generator pin. Regenerate requirements-lock.txt after edits; see
+# docs/tooling.md.
+uv==0.13.10
