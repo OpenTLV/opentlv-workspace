@@ -4,6 +4,10 @@ OpenTLV Workspace will provide a shared development environment for OpenTLV
 repositories. This repository is being set up; it does not yet contain
 workspace tooling.
 
+The [repository layout and Python support](docs/layout.md) document
+defines where workspace files belong, which Python versions are supported,
+and how to set up a clean checkout.
+
 ## Contributing
 
 For a bug, proposal, or maintenance task, start with the
