@@ -1,3 +1,8 @@
+<!--
+SPDX-FileCopyrightText: 2026 Marek Cingel
+SPDX-License-Identifier: MIT
+-->
+
 # Contributor tooling
 
 This document describes the pinned contributor tools, the pre-commit checks
@@ -18,6 +23,7 @@ wheels. Do not edit `requirements-dev.txt` by hand.
 | [pre-commit-hooks] | 6.0.0 | File size, path case conflicts, merge conflict markers, broken symbolic links, private keys, byte order marks, trailing whitespace, final newlines, mixed line endings, JSON and TOML syntax |
 | [yamllint] | 1.38.0 | YAML syntax and style, configured in `.yamllint.yaml` |
 | [pymarkdownlnt] | 0.9.42 | Markdown style, configured in `.pymarkdown` |
+| [REUSE] | 6.3.0 | SPDX copyright and license metadata, configured in file headers and `REUSE.toml` |
 | [Ruff] | 0.17.6 | Python syntax, lint, and formatting, configured in `ruff.toml` |
 
 The lock contains only wheels and has no platform-specific entries. It
@@ -55,7 +61,9 @@ All hooks use `language: system`. They run the tools installed in the
 active virtual environment and never download anything. Activate the
 environment before committing, including from an editor; a missing tool
 fails its hook. pre-commit selects files that Git tracks, so stage new
-files with `git add` before a full run.
+files with `git add` before a full run. The `reuse` hook is the exception: it
+always checks the whole repository, including untracked files that Git does
+not ignore.
 
 | Hook | Files | Behavior on failure |
 | --- | --- | --- |
@@ -74,6 +82,7 @@ files with `git add` before a full run.
 | `pymarkdown` | Markdown | Rejects Markdown style violations |
 | `ruff-check` | Python | Rejects syntax errors and lint violations |
 | `ruff-format` | Python | Formats the file |
+| `reuse` | Whole repository | Rejects files without copyright or license information, invalid license identifiers, and missing or unused license texts. See [licensing metadata](licensing.md) |
 
 A hook that modifies a file fails the run. Review the change, stage it, and
 run the checks again. To run one hook, pass its ID, for example
@@ -89,6 +98,11 @@ run the checks again. To run one hook, pass its ID, for example
 - Ruff targets Python 3.11, the runtime minimum. Besides the default
   pycodestyle and Pyflakes rules, it checks import order, common bug
   patterns, and syntax that can be upgraded for the target version.
+- REUSE is installed with its `charset-normalizer` extra. REUSE detects
+  file encodings with `python-magic`, which needs the system libmagic
+  library and is never used on Windows. Without libmagic, it falls back to
+  `charset-normalizer`, so the check needs no system packages on any
+  platform.
 
 ## Commands for continuous integration
 
@@ -159,5 +173,6 @@ platform.
 [pre-commit-hooks]: https://github.com/pre-commit/pre-commit-hooks
 [yamllint]: https://yamllint.readthedocs.io/
 [pymarkdownlnt]: https://pymarkdown.readthedocs.io/
+[REUSE]: https://reuse.software/
 [Ruff]: https://docs.astral.sh/ruff/
 [uv]: https://docs.astral.sh/uv/
