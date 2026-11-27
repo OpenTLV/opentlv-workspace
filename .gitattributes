@@ -1,0 +1,26 @@
+# Normalize text files to LF in the repository and in working trees on
+# every platform, regardless of the local core.autocrlf setting.
+* text=auto eol=lf
+
+# Windows batch files need CRLF line endings to run reliably.
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# Language-aware diff hunk headers.
+*.py diff=python
+*.md diff=markdown
+
+# Binary files are stored as-is: no line-ending conversion, text diff, or
+# text merge.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.webp binary
+*.pdf binary
+*.zip binary
+*.gz binary
+*.tgz binary
+*.xz binary
+*.whl binary

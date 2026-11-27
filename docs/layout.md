@@ -33,6 +33,25 @@ example:
 The workspace never builds, tests, or installs dependencies for a managed
 repository, and its scripts and tests do not import component code.
 
+## Formatting and line endings
+
+Repository-wide settings at the root keep text files consistent across
+platforms:
+
+- `.editorconfig` sets UTF-8, LF line endings, a final newline, no trailing
+  whitespace, and space indentation of two columns, or four for Python.
+- `.gitattributes` stores text files with LF line endings and checks them
+  out with LF on every platform, overriding a local `core.autocrlf`
+  setting. Windows batch files use CRLF. Images, archives, wheels, and PDFs
+  are marked binary, so Git never converts, diffs, or merges them as text.
+- `.gitignore` excludes the local `.venv/` environment, `.env` files, `build/`
+  output, Python bytecode, tool caches, and coverage reports. Keep personal
+  editor and operating system files in a global excludes file instead.
+
+When adding a binary file type, mark it in `.gitattributes` in the same
+pull request. Before opening a pull request, run `git diff --check` against
+the base branch to find whitespace errors.
+
 ## Python support
 
 The runtime and contributor contracts are separate. They currently share

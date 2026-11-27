@@ -13,6 +13,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Added repository-wide editor settings, LF line-ending normalization with binary file handling, and ignore rules for local environments, caches, and reports. (#13)
 - Documented the repository layout, the Python 3.11 minimum for workspace scripts and contributor tooling, and clean checkout setup that separates runtime from contributor dependencies. (#12)
 - Documented how to contribute, report vulnerabilities privately, and merge changes under the repository's governance settings. (#1)
-
