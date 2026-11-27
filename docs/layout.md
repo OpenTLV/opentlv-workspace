@@ -25,16 +25,38 @@ pull request.
 | `.venv/` | Optional local contributor environment. It is never committed. |
 | `build/` | Local scratch output, such as test logs and reports. It is never committed. |
 
-Managed OpenTLV repositories are cloned next to the workspace checkout, not
-inside it. The [managed repository inventory](inventory.md) defines which
-repositories are managed and their directory names. For example:
+## Workspace layout
+
+The workspace checkout is the host. Managed OpenTLV repositories are cloned
+next to it, not inside it:
 
 ```text
 <parent>/
-├── opentlv-workspace/   this repository
-├── opentlv/             OpenTLV/opentlv
-└── .github/             OpenTLV/.github
+├── opentlv-workspace/   the host, this repository
+└── <directory>/         one managed checkout per inventory entry
 ```
+
+The [managed repository inventory](inventory.md) is the only list of the
+managed repositories and their directory names. Read the current entries in
+[`repositories.toml`](../repositories.toml). The
+[development guide](development.md#set-up-the-managed-checkouts) describes
+how to clone them and open them together in an editor.
+
+### Ownership
+
+Each file has one owner, and changes go through the owner's issues and
+pull requests:
+
+| What | Owner | Rule |
+| --- | --- | --- |
+| `repositories.toml` | This repository | The single authoritative list of managed repositories. Change it only as described in [changing the inventory](inventory.md#changing-the-inventory). |
+| `opentlv.code-workspace` | This repository | Derived from the inventory. Its roots must match the inventory, which `python scripts/check_inventory.py` verifies. It never lists repositories that the inventory does not. |
+| Everything inside a managed checkout | The managed repository | Source code, builds, tests, dependencies, CI, editor settings, and history belong to that repository and follow its own contribution rules. The workspace never modifies them. |
+
+Workspace documentation, scripts, and configuration must not keep a second
+list of managed repositories. They link to the inventory or read it. The
+changelog is the exception, because its entries record what each change
+did.
 
 The workspace never builds, tests, or installs dependencies for a managed
 repository, and its scripts and tests do not import component code.

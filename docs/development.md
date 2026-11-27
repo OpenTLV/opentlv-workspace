@@ -106,6 +106,51 @@ The repository has no CI workflows yet, so these local checks are the only
 automated validation. Record the checks you ran and their results in the
 pull request.
 
+## Set up the managed checkouts
+
+The local checks need only the host checkout. To work on the workspace
+together with the managed repositories, clone each one next to the host.
+The [managed repository inventory](inventory.md) lists them in
+`repositories.toml`, and the [workspace layout](layout.md#workspace-layout)
+shows where they go.
+
+For each entry, run this from the host checkout, replacing the
+placeholders with the entry's values:
+
+```sh
+git clone https://<host>/<owner>/<name>.git ../<directory>
+```
+
+The inventory also allows an SSH remote,
+`git@<host>:<owner>/<name>.git`; see
+[repository identity](inventory.md#repository-identity). Clone into the
+directory that the entry names, because the editor workspace expects it
+there. Each managed repository has its own contributor setup, which the
+workspace does not install.
+
+## Open the editor workspace
+
+[`opentlv.code-workspace`](../opentlv.code-workspace) is the editor entry
+point. Open it in VS Code with **File > Open Workspace from File**, or from
+the host checkout with:
+
+```sh
+code opentlv.code-workspace
+```
+
+The window shows the host and one root per inventory entry. A root whose
+checkout is missing appears as a missing folder, and the other roots still
+work, so the file is usable with only the host checked out.
+
+- Each root is a separate Git repository. Commit a change in the repository
+  that owns the file; see [ownership](layout.md#ownership). The workspace
+  pre-commit hooks run only for commits in the host.
+- The workspace file contains no settings. Each root keeps its own editor
+  configuration, and personal settings belong in VS Code user settings.
+- Do not save settings, tasks, or launch configurations into
+  `opentlv.code-workspace`. Validation rejects any key other than
+  `folders`.
+
 ## Make a change
 
 1. Create a branch from the current `main` as described in the
@@ -118,7 +163,10 @@ pull request.
 4. Add notable changes to the `Unreleased` section of the
    [changelog](../CHANGELOG.md). Write each entry as a single line, prepend
    it to its category, and end it with the issue number, for example `(#16)`.
-5. Run the [local checks](#run-the-local-checks), sign your commits, and
+5. To add, change, or remove a managed repository, follow
+   [changing the inventory](inventory.md#changing-the-inventory). It also
+   updates the editor workspace.
+6. Run the [local checks](#run-the-local-checks), sign your commits, and
    open a pull request that follows the shared template. The
    [governance record](governance.md#merging-to-main) describes how changes
    reach `main`.
@@ -127,7 +175,7 @@ pull request.
 
 | Document | Covers |
 | --- | --- |
-| [Repository layout and Python support](layout.md) | Where files belong, supported Python versions, and the runtime and contributor dependency contracts |
+| [Repository layout and Python support](layout.md) | Where files belong, the sibling checkout layout and its ownership, supported Python versions, and the runtime and contributor dependency contracts |
 | [Managed repository inventory](inventory.md) | The authoritative list of managed repositories, its format, and how to change it |
 | [Contributor tooling](tooling.md) | Pinned tools, every pre-commit hook, CI commands, and how to update the pins |
 | [Licensing metadata](licensing.md) | SPDX file headers, `REUSE.toml`, and third-party material |
