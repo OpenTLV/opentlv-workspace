@@ -76,8 +76,8 @@ pre-commit run --all-files
 ```
 
 A clean checkout passes every check. Hooks for file types that the
-repository does not contain yet, such as Python files and symbolic links,
-report `(no files to check)`.
+repository does not contain yet, such as symbolic links, report
+`(no files to check)`.
 
 - pre-commit selects files that Git tracks. Stage new files with `git add`
   before a full run so that they are checked. The `reuse` check is the
@@ -87,6 +87,15 @@ report `(no files to check)`.
   again.
 - To run one check, pass its hook ID, for example
   `pre-commit run reuse --all-files`.
+
+The checks include the workspace tests and the
+[inventory validation](inventory.md#validation). Both use only the standard
+library and also run without the virtual environment:
+
+```sh
+python -m unittest discover --start-directory tests --top-level-directory .
+python scripts/check_inventory.py
+```
 
 [Contributor tooling](tooling.md#running-the-checks) lists every hook and
 its configuration. Before opening a pull request, also run

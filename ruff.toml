@@ -5,8 +5,10 @@
 
 # The runtime minimum from docs/layout.md.
 target-version = "py311"
-# Scripts import the shared package from scripts/opentlv_workspace/.
-src = ["scripts", "tests"]
+# First-party import roots: scripts import the shared package from
+# scripts/opentlv_workspace/, and tests import the tests package from the
+# repository root.
+src = [".", "scripts"]
 
 [lint]
 select = [
