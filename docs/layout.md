@@ -21,13 +21,13 @@ pull request.
 | `docs/` | Contributor and maintainer documentation for the workspace. |
 | `.github/` | Repository-local GitHub configuration, such as CI workflows. Without local community files, the organization defaults apply. See the [governance record](governance.md). |
 | `LICENSES/` | License texts named by their SPDX identifiers, such as `MIT.txt`. See [licensing metadata](licensing.md). |
-| Repository root | `README.md`, `CHANGELOG.md`, `LICENSE`, `REUSE.toml`, and repository-wide configuration files for formatting, Git, and contributor tooling. |
+| Repository root | `README.md`, `CHANGELOG.md`, `LICENSE`, `REUSE.toml`, the managed repository inventory `repositories.toml`, and repository-wide configuration files for formatting, Git, and contributor tooling. |
 | `.venv/` | Optional local contributor environment. It is never committed. |
 | `build/` | Local scratch output, such as test logs and reports. It is never committed. |
 
 Managed OpenTLV repositories are cloned next to the workspace checkout, not
-inside it. The repository inventory defines their directory names. For
-example:
+inside it. The [managed repository inventory](inventory.md) defines which
+repositories are managed and their directory names. For example:
 
 ```text
 <parent>/

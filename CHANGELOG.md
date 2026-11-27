@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Added `repositories.toml`, the authoritative inventory of the managed sibling repositories OpenTLV/opentlv and OpenTLV/.github, with a documented format that records each repository's transport-independent identity and checkout directory and excludes the workspace repository itself. (#22)
 - Added a development guide, linked from the README, that covers clean checkout setup on Linux, macOS, and Windows, the local quality checks, and the steps for preparing a change. (#16)
 - Added SPDX copyright and license metadata to every file, following the REUSE Specification 3.3, with a pinned `reuse lint` pre-commit check that rejects files without metadata and contributor guidance for file headers and third-party material. (#15)
 - Added hash-locked contributor tools and pre-commit checks for file size, merge conflicts, private keys, whitespace, line endings, JSON, TOML, YAML, Markdown, and Python, with commands for local and CI use. (#14)

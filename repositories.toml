@@ -1,0 +1,21 @@
+# SPDX-FileCopyrightText: 2026 Marek Cingel
+# SPDX-License-Identifier: MIT
+
+# Managed repository inventory: the single authoritative list of the
+# repositories that the workspace manages as sibling checkouts. The workspace
+# repository itself is the host and is never listed here. The format, field
+# rules, and change procedure are defined in docs/inventory.md.
+version = 1
+
+# Entries are sorted by host, owner, and name, compared case-insensitively.
+[[repositories]]
+host = "github.com"
+owner = "OpenTLV"
+name = ".github"
+directory = ".github"
+
+[[repositories]]
+host = "github.com"
+owner = "OpenTLV"
+name = "opentlv"
+directory = "opentlv"

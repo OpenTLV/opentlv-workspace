@@ -119,6 +119,7 @@ pull request.
 | Document | Covers |
 | --- | --- |
 | [Repository layout and Python support](layout.md) | Where files belong, supported Python versions, and the runtime and contributor dependency contracts |
+| [Managed repository inventory](inventory.md) | The authoritative list of managed repositories, its format, and how to change it |
 | [Contributor tooling](tooling.md) | Pinned tools, every pre-commit hook, CI commands, and how to update the pins |
 | [Licensing metadata](licensing.md) | SPDX file headers, `REUSE.toml`, and third-party material |
 | [Repository governance](governance.md) | Inherited community policies, merge rules, and verified GitHub settings |
