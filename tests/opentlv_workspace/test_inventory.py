@@ -75,9 +75,7 @@ class InventoryFileTest(unittest.TestCase):
         with self.assertRaises(InventoryError) as context:
             load_inventory(self.path)
         self.assertEqual(len(context.exception.diagnostics), 1)
-        self.assertIn(
-            "missing required key 'repositories'", str(context.exception)
-        )
+        self.assertIn("missing required key 'repositories'", str(context.exception))
 
     def test_missing_file(self) -> None:
         result = read_inventory(self.path, source=INVENTORY_FILE)
@@ -129,10 +127,7 @@ class TopLevelTest(unittest.TestCase):
         data = {"version": 2, "repositories": [{"url": "x"}]}
         self.assertEqual(
             messages(validate_inventory(data)),
-            [
-                PREFIX + "version: unsupported version 2; "
-                "this tool supports version 1"
-            ],
+            [PREFIX + "version: unsupported version 2; this tool supports version 1"],
         )
 
     def test_repositories_must_be_array_of_tables(self) -> None:
