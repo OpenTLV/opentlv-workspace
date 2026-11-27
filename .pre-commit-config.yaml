@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Marek Cingel
+# SPDX-License-Identifier: MIT
+
 # Contributor quality checks. Every hook runs a tool from the hash-locked
 # requirements-dev.txt in the activated virtual environment, so hooks need
 # no network access and install nothing. See docs/tooling.md.
@@ -89,3 +92,13 @@ repos:
         entry: ruff format --force-exclude
         language: system
         types_or: [python, pyi]
+
+      # Licensing metadata. REUSE checks the whole repository, including
+      # untracked files that Git does not ignore, so the hook ignores the
+      # selected file names and runs on every commit.
+      - id: reuse
+        name: Check REUSE licensing metadata
+        entry: reuse lint
+        language: system
+        pass_filenames: false
+        always_run: true

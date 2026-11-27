@@ -1,3 +1,8 @@
+<!--
+SPDX-FileCopyrightText: 2026 Marek Cingel
+SPDX-License-Identifier: MIT
+-->
+
 # Repository layout and Python support
 
 This document defines where workspace files belong and which Python versions
@@ -15,7 +20,8 @@ pull request.
 | `tests/fixtures/` | Offline test data, such as inventories and Git repositories created in temporary directories. Tests need no network access. |
 | `docs/` | Contributor and maintainer documentation for the workspace. |
 | `.github/` | Repository-local GitHub configuration, such as CI workflows. Without local community files, the organization defaults apply. See the [governance record](governance.md). |
-| Repository root | `README.md`, `CHANGELOG.md`, `LICENSE`, and repository-wide configuration files for formatting, Git, contributor tooling, and licensing metadata. |
+| `LICENSES/` | License texts named by their SPDX identifiers, such as `MIT.txt`. See [licensing metadata](licensing.md). |
+| Repository root | `README.md`, `CHANGELOG.md`, `LICENSE`, `REUSE.toml`, and repository-wide configuration files for formatting, Git, and contributor tooling. |
 | `.venv/` | Optional local contributor environment. It is never committed. |
 | `build/` | Local scratch output, such as test logs and reports. It is never committed. |
 

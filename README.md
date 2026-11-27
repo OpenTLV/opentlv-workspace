@@ -1,3 +1,8 @@
+<!--
+SPDX-FileCopyrightText: 2026 Marek Cingel
+SPDX-License-Identifier: MIT
+-->
+
 # OpenTLV Workspace
 
 OpenTLV Workspace will provide a shared development environment for OpenTLV
@@ -25,7 +30,9 @@ Notable changes are listed in the [changelog](CHANGELOG.md).
 
 ## License
 
-OpenTLV Workspace is distributed under the [MIT License](LICENSE).
+OpenTLV Workspace is distributed under the [MIT License](LICENSE). Each
+file carries SPDX copyright and license metadata, as described in
+[licensing metadata](docs/licensing.md).
 
 [contribution guidelines]: https://github.com/OpenTLV/.github/blob/main/CONTRIBUTING.md
 [code of conduct]: https://github.com/OpenTLV/.github/blob/main/CODE_OF_CONDUCT.md

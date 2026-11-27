@@ -1,3 +1,8 @@
+<!--
+SPDX-FileCopyrightText: 2026 Marek Cingel
+SPDX-License-Identifier: MIT
+-->
+
 # Repository governance
 
 This record describes how changes reach `main` in OpenTLV/opentlv-workspace

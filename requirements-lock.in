@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Marek Cingel
+# SPDX-License-Identifier: MIT
+
 # Lock generator pin. Regenerate requirements-lock.txt after edits; see
 # docs/tooling.md.
 uv==0.13.10

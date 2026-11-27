@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Marek Cingel
+# SPDX-License-Identifier: MIT
+
 # YAML lint settings. See https://yamllint.readthedocs.io.
 extends: default
 

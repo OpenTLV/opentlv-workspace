@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Marek Cingel
+# SPDX-License-Identifier: MIT
+
 # Normalize text files to LF in the repository and in working trees on
 # every platform, regardless of the local core.autocrlf setting.
 * text=auto eol=lf
