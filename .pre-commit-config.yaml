@@ -62,7 +62,7 @@ repos:
         name: Check JSON syntax
         entry: check-json
         language: system
-        files: (\.json|^\.pymarkdown)$
+        files: (\.json|^\.pymarkdown|^opentlv\.code-workspace)$
       - id: check-toml
         name: Check TOML syntax
         entry: check-toml

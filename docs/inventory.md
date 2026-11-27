@@ -114,6 +114,28 @@ removing, or renaming a key, or changing a rule so that a valid inventory
 becomes invalid or changes meaning, requires a new version. A tool rejects a
 version it does not support instead of guessing.
 
+## Editor workspace
+
+[`opentlv.code-workspace`](../opentlv.code-workspace) at the repository root
+is a multi-root VS Code workspace derived from the inventory. Its `folders`
+array contains exactly these roots, in this order:
+
+1. The host, with the name `opentlv-workspace` and the path `.`. The name
+   stays the same under any host directory name.
+2. One root per inventory entry, in [inventory order](#ordering), with the
+   entry's `directory` as the name and `../<directory>` as the path.
+
+VS Code resolves relative paths against the directory that contains the
+workspace file, so the roots resolve wherever the host is checked out. The
+file is plain JSON without comments, and `folders` is its only key. It
+contains no settings, tasks, launch configurations, or extension
+recommendations, so it never overrides a component's own build or editor
+configuration and holds no machine-specific paths. Keep personal settings in
+VS Code user settings.
+
+A managed root whose checkout is missing appears in VS Code as a missing
+folder. The other roots still open.
+
 ## Changing the inventory
 
 Which repositories the workspace manages is a scope decision. Propose a
@@ -122,7 +144,8 @@ change in an issue before editing the inventory. In the pull request:
 1. Add, change, or remove the entry in `repositories.toml`, keeping the
    [ordering](#ordering).
 2. Update every consumer of the inventory in the same pull request, so no
-   configuration lists a different set of repositories.
+   configuration lists a different set of repositories. This includes the
+   roots of the [editor workspace](#editor-workspace).
 3. Record the change in the [changelog](../CHANGELOG.md).
 
 The `check-toml` pre-commit hook checks only the TOML syntax. Reviewers
