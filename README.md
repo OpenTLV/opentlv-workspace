@@ -10,9 +10,11 @@ repositories. This repository is being set up. Its tooling currently
 validates the [managed repository inventory](docs/inventory.md) and the
 multi-root editor workspace.
 
-The [repository layout and Python support](docs/layout.md) document
-defines where workspace files belong, which Python versions are supported,
-and how to set up a clean checkout.
+The managed repositories are cloned next to this checkout, and
+`opentlv.code-workspace` opens them together in VS Code. The
+[repository layout and Python support](docs/layout.md) document defines
+where workspace files belong, who owns the inventory and each checkout,
+which Python versions are supported, and how to set up a clean checkout.
 
 ## Development
 

@@ -143,11 +143,23 @@ change in an issue before editing the inventory. In the pull request:
 
 1. Add, change, or remove the entry in `repositories.toml`, keeping the
    [ordering](#ordering).
-2. Update every consumer of the inventory in the same pull request, so no
-   configuration lists a different set of repositories. This includes the
-   roots of the [editor workspace](#editor-workspace).
-3. Record the change in the [changelog](../CHANGELOG.md).
-4. Run the [validation](#validation) and fix every reported problem.
+2. Update the `folders` array of `opentlv.code-workspace` to match, with
+   the host first and one root per entry in inventory order, as described
+   in [editor workspace](#editor-workspace).
+3. Update every other consumer of the inventory in the same pull request,
+   so no configuration lists a different set of repositories. Documentation
+   links to the inventory instead of listing the repositories.
+4. Record the change in the [changelog](../CHANGELOG.md).
+5. Run the [validation](#validation), which checks both the inventory rules
+   and that the editor workspace roots match the inventory, and fix every
+   reported problem. Then run the remaining
+   [local checks](development.md#run-the-local-checks).
+
+After the change is merged, contributors clone an added repository next to
+the host as described in
+[set up the managed checkouts](development.md#set-up-the-managed-checkouts).
+Removing an entry does not delete existing checkouts; contributors remove
+them by hand if they no longer need them.
 
 ## Validation
 
