@@ -13,6 +13,13 @@ The [repository layout and Python support](docs/layout.md) document
 defines where workspace files belong, which Python versions are supported,
 and how to set up a clean checkout.
 
+## Development
+
+The [development guide](docs/development.md) describes how to set up a clean
+checkout, install the pinned contributor tools, and run the local quality
+checks. [Contributor tooling](docs/tooling.md) lists every check and how to
+update the tool pins.
+
 ## Contributing
 
 For a bug, proposal, or maintenance task, start with the
