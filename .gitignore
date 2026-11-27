@@ -1,0 +1,23 @@
+# Local contributor environments
+/.venv/
+.env
+
+# Local scratch output, such as test logs and reports
+/build/
+
+# Python bytecode and tool caches
+__pycache__/
+*.py[cod]
+.cache/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Coverage data and reports
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+
+# Personal editor and operating system files belong in a global excludes
+# file (core.excludesFile), not here.
